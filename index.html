@@ -1127,19 +1127,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="stats" id="proc-stats" style="margin-bottom:16px"></div>
       <div class="dash-sec">
         <div class="sh">
-          <span class="st">Meus Processos</span>
+          <div>
+            <span class="st">Meus Processos</span>
+            <div style="font-size:11px;color:var(--ink3);margin-top:2px">Cadastre manualmente — use ⟳ para atualizar movimentações via DataJud</div>
+          </div>
           <div class="sh-actions">
-            <input class="filter-input" id="proc-busca" placeholder="Nº processo ou parte..." style="width:200px" oninput="renderProcessos()">
+            <input class="filter-input" id="proc-busca" placeholder="Nº processo ou parte..." style="width:180px" oninput="renderProcessos()">
             <select class="filter-sel" id="proc-status-fil" onchange="renderProcessos()">
-              <option value="">Todos</option>
-              <option value="Ativo">Ativo</option>
-              <option value="Encerrado">Encerrado</option>
+              <option value="">Todos</option><option value="Ativo">Ativo</option><option value="Encerrado">Encerrado</option>
             </select>
             <select class="filter-sel" id="proc-tribunal-fil" onchange="renderProcessos()">
               <option value="">Todos os tribunais</option>
               <option>TJ-SP</option><option>TJ-MG</option><option>TRT-SP</option>
               <option>TRF-3</option><option>STJ</option><option>STF</option><option>Outros</option>
             </select>
+            <button class="btn sm" onclick="sincTodosProcessos()" title="Atualizar movimentações de todos">⟳ Atualizar todos</button>
           </div>
         </div>
         <div id="proc-lista" style="padding:4px 0"></div>
@@ -1187,13 +1189,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <div class="pg" id="pg-publicacoes">
-      <div class="filter-bar" style="gap:8px;flex-wrap:wrap">
+      <div class="filter-bar" style="gap:8px;flex-wrap:wrap;align-items:center">
         <button class="filter-btn on" onclick="filtrarPub('todas',this)">Todas</button>
         <button class="filter-btn" onclick="filtrarPub('nao_tratada',this)">Não tratadas</button>
         <button class="filter-btn" onclick="filtrarPub('tratada',this)">Tratadas</button>
-        <button class="btn sm primary" onclick="sincPublicacoes()" id="btn-sinc-pub" style="margin-left:auto">
-          ⟳ Buscar no DataJud
-        </button>
+        <div style="margin-left:auto;display:flex;gap:7px;align-items:center">
+          <div id="pub-oab-info" style="font-size:11px;color:var(--ink3)"></div>
+          <button class="btn sm" onclick="abrirConfigMonitor()">⚙ Configurar OAB</button>
+          <button class="btn sm primary" onclick="sincPublicacoes()" id="btn-sinc-pub">⟳ Buscar no DataJud</button>
+        </div>
       </div>
       <div class="dash-sec" id="pub-container"></div>
     </div>
@@ -1455,6 +1459,10 @@ function carregarPublicacoesLocais(){
 
 function renderPublicacoes(){
   carregarPublicacoesLocais();
+  // Mostrar OAB configurada
+  const cfg=carregarConfigMonitor();
+  const oabInfo=document.getElementById('pub-oab-info');
+  if(oabInfo) oabInfo.textContent=cfg.oab?'OAB: '+cfg.oab:'⚠ OAB não configurada';
   let pubs=[...DB.publicacoes];
   if(pubFil!=='todas')pubs=pubs.filter(p=>p.status===pubFil);
   const el=document.getElementById('pub-container');if(!el)return;
@@ -1485,34 +1493,92 @@ function marcarPubTratada(id){
 
 async function sincPublicacoes(){
   carregarProcessosLocais();carregarPublicacoesLocais();
-  if(!DB.processos.length){showToast('Cadastre processos primeiro');return;}
+  const cfg = carregarConfigMonitor();
   const btn=document.getElementById('btn-sinc-pub');
   if(btn){btn.textContent='⟳ Consultando…';btn.disabled=true;}
+
+  if(!cfg.oab && !DB.processos.length){
+    showToast('Configure sua OAB primeiro (botão ⚙ acima)');
+    if(btn){btn.textContent='⟳ Buscar no DataJud';btn.disabled=false;}
+    return;
+  }
+
   showToast('Consultando DataJud…');
   let novas=0;
   const existentes=new Set(DB.publicacoes.map(p=>p.id));
+
+  // Buscar por processos cadastrados (TJ-SP)
   for(const proc of DB.processos.slice(0,5)){
     if(!proc.numero)continue;
     try{
-      const r=await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},body:JSON.stringify({query:{match:{numeroProcesso:proc.numero}},size:1})});
+      const r=await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},
+        body:JSON.stringify({query:{match:{numeroProcesso:proc.numero}},size:1})
+      });
       const d=await r.json();const hits=d?.hits?.hits||[];
       if(hits.length){
-        const movs=(hits[0]._source.movimentos||[]).slice(-3);
+        const movs=(hits[0]._source.movimentos||[]).slice(-5);
         movs.forEach(m=>{
           const id=proc.numero+'_'+(m.dataHora||Date.now());
           if(!existentes.has(id)){
             DB.publicacoes.push({id,numero:proc.numero,tipo:'publicação',data:m.dataHora?new Date(m.dataHora).toLocaleDateString('pt-BR'):'',conteudo:m.nome||m.descricao||'Movimentação',cliente:proc.cliente||'',status:'nao_tratada'});
-            novas++;
+            existentes.add(id);novas++;
           }
         });
       }
-      await new Promise(r=>setTimeout(r,600));
+      await new Promise(r=>setTimeout(r,500));
     }catch(e){}
   }
+
+  // Buscar por OAB no DJe (usando busca por advogado)
+  if(cfg.oab){
+    try{
+      const oabNum = cfg.oab.replace(/\D/g,'');
+      // Busca nos principais tribunais usando o nome/OAB
+      const tribunais = [
+        {idx:'api_publica_tjsp', nome:'TJ-SP'},
+        {idx:'api_publica_trtsp', nome:'TRT-SP'},
+      ];
+      for(const trib of tribunais){
+        try{
+          const r=await fetch(`https://api-publica.datajud.cnj.jus.br/${trib.idx}/_search`,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},
+            body:JSON.stringify({
+              query:{bool:{should:[
+                {match:{numeroOAB:oabNum}},
+                {match:{numeroOABAdvogado:oabNum}},
+                {match_phrase:{representantes:cfg.oab}}
+              ]}},
+              size:10,
+              _source:['numeroProcesso','movimentos','orgaoJulgador','classeProcessual']
+            })
+          });
+          const d=await r.json();
+          const hits=d?.hits?.hits||[];
+          hits.forEach(hit=>{
+            const proc=hit._source;
+            const num=proc.numeroProcesso;
+            const movs=(proc.movimentos||[]).slice(-3);
+            movs.forEach(m=>{
+              const id=(num||'oab')+'_'+(m.dataHora||Date.now())+'_oab';
+              if(!existentes.has(id)){
+                DB.publicacoes.push({id,numero:num||'—',tipo:'publicação OAB',data:m.dataHora?new Date(m.dataHora).toLocaleDateString('pt-BR'):'',conteudo:m.nome||m.descricao||'Movimentação',cliente:'Via OAB '+cfg.oab,status:'nao_tratada',tribunal:trib.nome});
+                existentes.add(id);novas++;
+              }
+            });
+          });
+          await new Promise(r=>setTimeout(r,500));
+        }catch(e){}
+      }
+    }catch(e){}
+  }
+
   localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes));
   renderPublicacoes();atualizarIndicadores();
   if(btn){btn.textContent='⟳ Buscar no DataJud';btn.disabled=false;}
-  showToast(novas>0?`${novas} nova(s) encontrada(s)`:'Sem novidades');
+  showToast(novas>0?`${novas} nova(s) publicação(ões) encontrada(s)`:'DataJud consultado — sem novidades');
 }
 
 // ════════════════════════════════════════
@@ -1614,6 +1680,65 @@ function renderExpedienteLista(){
 // ════════════════════════════════════════
 // PROCESSOS
 // ════════════════════════════════════════
+
+// ════════════════════════════════════════
+// CONFIGURAÇÃO DE MONITORAMENTO (OAB/CPF)
+// ════════════════════════════════════════
+function carregarConfigMonitor(){
+  const s = localStorage.getItem('littera_monitor');
+  if(s) try { return JSON.parse(s); } catch(e) {}
+  return { oab:'', cpf:'', documentos:[] };
+}
+
+function salvarConfigMonitor(cfg){
+  localStorage.setItem('littera_monitor', JSON.stringify(cfg));
+}
+
+function abrirConfigMonitor(){
+  const cfg = carregarConfigMonitor();
+  abrirModal('Configuração de Monitoramento', `
+    <div style="background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--jade)">
+      ⚡ O sistema buscará publicações automaticamente usando estes dados. Configure uma vez e esqueça.
+    </div>
+    <div class="form-group"><label>Número da OAB *</label>
+      <input id="cfg-oab" type="text" placeholder="Ex: 363517 ou SP363517" value="${cfg.oab||''}">
+    </div>
+    <div class="form-group"><label>CPF do advogado</label>
+      <input id="cfg-cpf" type="text" placeholder="000.000.000-00" value="${cfg.cpf||''}">
+    </div>
+    <div class="form-group"><label>Documentos adicionais para monitorar</label>
+      <div id="cfg-docs-list" style="margin-bottom:6px">
+        ${(cfg.documentos||[]).map((d,i)=>`<div style="display:flex;gap:6px;margin-bottom:4px">
+          <input type="text" value="${d.tipo}: ${d.numero}" data-idx="${i}" style="flex:1;padding:6px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif">
+          <button onclick="this.parentElement.remove()" style="padding:4px 8px;border:none;background:var(--rbg);color:var(--red);border-radius:6px;cursor:pointer;font-size:11px">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn sm" onclick="adicionarDocMonitor()">+ Adicionar CPF/CNPJ de cliente</button>
+    </div>`,
+  () => {
+    const oab = document.getElementById('cfg-oab').value.trim();
+    const cpf = document.getElementById('cfg-cpf').value.trim();
+    const docEls = document.querySelectorAll('#cfg-docs-list input');
+    const documentos = [];
+    docEls.forEach(el => {
+      const val = el.value.trim();
+      if(val) documentos.push({tipo:'CPF/CNPJ', numero:val});
+    });
+    salvarConfigMonitor({oab, cpf, documentos});
+    fecharModal();
+    showToast('Configuração salva! Use "Buscar" para atualizar.');
+  });
+}
+
+function adicionarDocMonitor(){
+  const lista = document.getElementById('cfg-docs-list');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;margin-bottom:4px';
+  div.innerHTML = `<input type="text" placeholder="CPF ou CNPJ do cliente..." style="flex:1;padding:6px 10px;border:1px solid var(--br2);border-radius:6px;font-size:12px;font-family:'DM Sans',sans-serif">
+    <button onclick="this.parentElement.remove()" style="padding:4px 8px;border:none;background:var(--rbg);color:var(--red);border-radius:6px;cursor:pointer;font-size:11px">✕</button>`;
+  lista.appendChild(div);
+}
+
 function carregarProcessosLocais(){
   const s=localStorage.getItem('littera_processos');
   if(s)try{DB.processos=JSON.parse(s);}catch(e){}
@@ -1660,6 +1785,17 @@ function abrirModalProcesso(){
   });
 }
 
+async function sincTodosProcessos(){
+  carregarProcessosLocais();
+  if(!DB.processos.length){showToast('Nenhum processo cadastrado');return;}
+  showToast('Atualizando '+DB.processos.length+' processo(s)…');
+  for(const p of DB.processos){
+    await consultarDataJud(p.numero, p.id);
+    await new Promise(r=>setTimeout(r,600));
+  }
+  showToast('Processos atualizados!');
+}
+
 function delProcesso(id){
   if(!confirm('Excluir processo?'))return;
   carregarProcessosLocais();
@@ -1700,8 +1836,8 @@ async function loadData(){
 
 function renderAll(){
   renderDash();
-  renderTarefas();
-  renderClientes();
+  if(typeof rTar==='function') rTar(); else if(typeof renderTarefas==='function') renderTarefas();
+  if(typeof rCli==='function') rCli(); else if(typeof renderClientes==='function') renderClientes();
   renderCalendario();
   renderRadar();
   renderUsuarios();
