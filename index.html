@@ -871,7 +871,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
               </div>
             </div>
           </div>
-          <div class="kanban">
+          <div class="kanban" style="grid-template-columns:repeat(5,1fr)">
+            <div class="kb-col">
+              <div class="kb-head"><div class="kb-head-left"><div class="kb-dot" style="background:var(--red)"></div><span class="kb-head-title">Atrasadas</span></div><span class="kb-count" id="kc-atrasadas">0</span></div>
+              <div class="kb-cards" id="kb-atrasadas"></div>
+            </div>
             <div class="kb-col">
               <div class="kb-head"><div class="kb-head-left"><div class="kb-dot urg"></div><span class="kb-head-title">Urgente</span></div><span class="kb-count" id="kc-urg">0</span></div>
               <div class="kb-cards" id="kb-urgente"></div>
@@ -883,6 +887,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
             <div class="kb-col">
               <div class="kb-head"><div class="kb-head-left"><div class="kb-dot nor"></div><span class="kb-head-title">Normal</span></div><span class="kb-count" id="kc-nor">0</span></div>
               <div class="kb-cards" id="kb-normal"></div>
+            </div>
+            <div class="kb-col">
+              <div class="kb-head"><div class="kb-head-left"><div class="kb-dot" style="background:var(--grn)"></div><span class="kb-head-title">Concluídas</span></div><span class="kb-count" id="kc-conc">0</span></div>
+              <div class="kb-cards" id="kb-conc"></div>
             </div>
           </div>
           <div id="cal-vis-container"></div>
@@ -1151,17 +1159,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <div class="pg" id="pg-honorarios">
-      <div class="future-placeholder">
-        <div class="fp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-        <div class="fp-title">Financeiro — Honorários e Caixa</div>
-        <div class="fp-sub">Controle completo de honorários, custas processuais, inadimplência, previsão de receita e cashflow do escritório. Com emissão de boletos e integração bancária.</div>
-        <div class="fp-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Fase 2 — Em desenvolvimento
+      <div id="hon-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
+      <div class="dash-sec">
+        <div class="sh">
+          <span class="st">Honorários & Movimentações</span>
+          <div class="sh-actions">
+            <select class="filter-sel" id="hon-status-fil" onchange="renderHonorarios()">
+              <option value="">Todos</option><option value="pago">Pago</option>
+              <option value="a_vencer">A vencer</option><option value="vencido">Vencido</option>
+            </select>
+            <select class="filter-sel" id="hon-cli-fil" onchange="renderHonorarios()"><option value="">Todos os clientes</option></select>
+          </div>
         </div>
+        <div id="hon-lista" style="padding:4px 0"></div>
       </div>
     </div>
-
     <div class="pg" id="pg-peças">
       <div class="future-placeholder">
         <div class="fp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3l1.5 4.5H18l-3.75 2.7 1.5 4.5L12 12l-3.75 2.7 1.5-4.5L6 7.5h4.5z"/><path d="M12 22V12"/></svg></div>
@@ -1175,17 +1187,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <div class="pg" id="pg-publicacoes">
-      <div class="future-placeholder">
-        <div class="fp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-        <div class="fp-title">Busca de Publicações Judiciais</div>
-        <div class="fp-sub">Monitoramento automático de publicações no DJe, PJe e e-SAJ. Alertas em tempo real para movimentações nos processos dos seus clientes, com integração ao calendário.</div>
-        <div class="fp-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Fase 3 — Planejado
-        </div>
+      <div class="filter-bar" style="gap:8px;flex-wrap:wrap">
+        <button class="filter-btn on" onclick="filtrarPub('todas',this)">Todas</button>
+        <button class="filter-btn" onclick="filtrarPub('nao_tratada',this)">Não tratadas</button>
+        <button class="filter-btn" onclick="filtrarPub('tratada',this)">Tratadas</button>
+        <button class="btn sm primary" onclick="sincPublicacoes()" id="btn-sinc-pub" style="margin-left:auto">
+          ⟳ Buscar no DataJud
+        </button>
       </div>
+      <div class="dash-sec" id="pub-container"></div>
     </div>
-
   </div><!-- /content -->
 </div><!-- /main-wrap -->
 
@@ -1327,7 +1338,183 @@ function mostrarApp(){
 // ══════════════════════════════════════════
 //  LOAD DATA
 // ══════════════════════════════════════════
-async 
+
+// ════════════════════════════════════════
+// HONORÁRIOS
+// ════════════════════════════════════════
+function carregarHonorariosLocais(){
+  const s=localStorage.getItem('littera_honorarios');
+  if(s)try{DB.honorarios=JSON.parse(s);}catch(e){}
+  if(!DB.honorarios)DB.honorarios=[];
+}
+
+function renderHonorarios(){
+  carregarHonorariosLocais();
+  const statusFil=document.getElementById('hon-status-fil')?.value||'';
+  const cliFil=document.getElementById('hon-cli-fil')?.value||'';
+
+  // Popular select de clientes
+  const selCli=document.getElementById('hon-cli-fil');
+  if(selCli&&selCli.options.length<=1){
+    DB.clientes.forEach(cli=>{const op=document.createElement('option');op.value=cli.ID;op.textContent=cli.Nome;selCli.appendChild(op);});
+  }
+
+  let hon=[...DB.honorarios];
+  if(statusFil)hon=hon.filter(h=>h.status===statusFil);
+  if(cliFil)hon=hon.filter(h=>h.cliId===cliFil);
+
+  const totalPago=hon.filter(h=>h.tipo==='receita'&&h.status==='pago').reduce((s,h)=>s+parseFloat(h.valor||0),0);
+  const totalAVencer=hon.filter(h=>h.tipo==='receita'&&h.status==='a_vencer').reduce((s,h)=>s+parseFloat(h.valor||0),0);
+  const totalVencido=hon.filter(h=>h.tipo==='receita'&&h.status==='vencido').reduce((s,h)=>s+parseFloat(h.valor||0),0);
+  const totalDesp=hon.filter(h=>h.tipo==='despesa').reduce((s,h)=>s+parseFloat(h.valor||0),0);
+
+  const statsEl=document.getElementById('hon-stats');
+  if(statsEl) statsEl.innerHTML=`
+    <div class="stat-card c4"><div class="stat-num" style="color:var(--grn)">${fmtBRL(totalPago)}</div><div class="stat-lbl">Receitas pagas</div></div>
+    <div class="stat-card c3"><div class="stat-num" style="color:var(--amb)">${fmtBRL(totalAVencer)}</div><div class="stat-lbl">A receber</div></div>
+    <div class="stat-card c2"><div class="stat-num" style="color:var(--red)">${fmtBRL(totalVencido)}</div><div class="stat-lbl">Vencidas</div></div>
+    <div class="stat-card c1"><div class="stat-num" style="color:var(--red)">${fmtBRL(totalDesp)}</div><div class="stat-lbl">Despesas</div></div>`;
+
+  const el=document.getElementById('hon-lista');if(!el)return;
+  if(!hon.length){
+    el.innerHTML=`<div class="empty" style="margin:8px"><div class="empty-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="empty-title">Nenhuma movimentação</div><div class="empty-sub">Registre honorários e pagamentos do escritório.</div><button class="empty-action" onclick="abrirModalHonorario()">+ Nova movimentação</button></div>`;
+    return;
+  }
+
+  const corStatus={pago:'var(--grn)',a_vencer:'var(--amb)',vencido:'var(--red)'};
+  el.innerHTML=hon.map(h=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--br);transition:background .15s" onmouseover="this.style.background='var(--sf2)'" onmouseout="this.style.background=''">
+      <div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${corStatus[h.status]||'var(--ink3)'}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:500;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.descricao||'—'}</div>
+        <div style="font-size:11px;color:var(--ink3);margin-top:1px">${h.cliente||'—'} · Vence: ${h.vencimento||'—'} · <span class="tag ${h.tipo==='receita'?'ok':'gy'}" style="font-size:9px">${h.tipo||'receita'}</span></div>
+      </div>
+      <div style="font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:${h.tipo==='despesa'?'var(--red)':'var(--grn)'}">
+        ${h.tipo==='despesa'?'-':''}${fmtBRL(h.valor||0)}
+      </div>
+      <span class="tag ${h.status==='pago'?'ok':h.status==='vencido'?'urg':'alt'}">${h.status==='pago'?'Pago':h.status==='vencido'?'Vencido':'A vencer'}</span>
+      <button class="icon-btn danger" onclick="delHonorario('${h.id}')">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function abrirModalHonorario(){
+  const cliOpts=DB.clientes.map(c=>`<option value="${c.ID}" data-nome="${c.Nome.replace(/"/g,'&quot;')}">${c.Nome.replace(/</g,'&lt;')}</option>`).join('');
+  abrirModal('Nova movimentação financeira',`
+    <div class="form-row-2">
+      <div class="form-group"><label>Tipo</label><select id="mh-tipo"><option value="receita">Receita (honorário)</option><option value="despesa">Despesa</option></select></div>
+      <div class="form-group"><label>Valor (R$) *</label><input id="mh-val" type="number" step="0.01" placeholder="0,00"></div>
+    </div>
+    <div class="form-group"><label>Descrição *</label><input id="mh-desc" type="text" placeholder="Ex: Honorários mensais — Janeiro"></div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Cliente</label><select id="mh-cli"><option value="">— Sem cliente —</option>${cliOpts}</select></div>
+      <div class="form-group"><label>Vencimento</label><input id="mh-venc" type="date"></div>
+    </div>
+    <div class="form-group"><label>Status</label><select id="mh-status"><option value="a_vencer">A vencer</option><option value="pago">Pago</option><option value="vencido">Vencido</option></select></div>`,
+  ()=>{
+    const desc=document.getElementById('mh-desc').value.trim();
+    const val=document.getElementById('mh-val').value;
+    if(!desc||!val){showToast('Preencha descrição e valor');return;}
+    const cliEl=document.getElementById('mh-cli');
+    const cliNome=cliEl.selectedIndex>0?cliEl.options[cliEl.selectedIndex].getAttribute('data-nome'):'';
+    const vencEl=document.getElementById('mh-venc');
+    const vencFmt=vencEl.value?new Date(vencEl.value+'T12:00:00').toLocaleDateString('pt-BR'):'';
+    carregarHonorariosLocais();
+    DB.honorarios.push({id:uid(),tipo:document.getElementById('mh-tipo').value,descricao:desc,valor:parseFloat(val),cliente:cliNome,cliId:cliEl.value,vencimento:vencFmt,status:document.getElementById('mh-status').value,criadoEm:new Date().toISOString()});
+    localStorage.setItem('littera_honorarios',JSON.stringify(DB.honorarios));
+    fecharModal();renderHonorarios();showToast('Movimentação salva!');
+  });
+}
+
+function delHonorario(id){
+  if(!confirm('Excluir movimentação?'))return;
+  carregarHonorariosLocais();
+  DB.honorarios=DB.honorarios.filter(h=>h.id!==id);
+  localStorage.setItem('littera_honorarios',JSON.stringify(DB.honorarios));
+  renderHonorarios();showToast('Excluído');
+}
+
+// ════════════════════════════════════════
+// PUBLICAÇÕES (DataJud)
+// ════════════════════════════════════════
+let pubFil='todas';
+
+function filtrarPub(f,btn){
+  pubFil=f;
+  document.querySelectorAll('#pg-publicacoes .filter-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  renderPublicacoes();
+}
+
+function carregarPublicacoesLocais(){
+  const s=localStorage.getItem('littera_publicacoes');
+  if(s)try{DB.publicacoes=JSON.parse(s);}catch(e){}
+  if(!DB.publicacoes)DB.publicacoes=[];
+}
+
+function renderPublicacoes(){
+  carregarPublicacoesLocais();
+  let pubs=[...DB.publicacoes];
+  if(pubFil!=='todas')pubs=pubs.filter(p=>p.status===pubFil);
+  const el=document.getElementById('pub-container');if(!el)return;
+
+  if(!pubs.length){
+    el.innerHTML=`<div style="padding:16px">${`<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="empty-title">Nenhuma publicação</div><div class="empty-sub">Use o botão "Buscar no DataJud" para consultar movimentações dos processos cadastrados.</div></div>`}</div>`;
+    return;
+  }
+
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr>
+    <th>Data</th><th>Tipo</th><th>Nº Processo</th><th>Conteúdo</th><th>Cliente</th><th>Status</th><th></th>
+  </tr></thead><tbody>${pubs.map(p=>`<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);white-space:nowrap">${p.data||'—'}</td>
+    <td><span class="tag pu" style="font-size:9px">${p.tipo||'publicação'}</span></td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blu);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.numero||'—'}</td>
+    <td style="font-size:11px;color:var(--ink2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.conteudo||'—').replace(/</g,'&lt;')}</td>
+    <td style="font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td>
+    <td><span class="tag ${p.status==='nao_tratada'?'urg':'ok'}">${p.status==='nao_tratada'?'Não tratada':'Tratada'}</span></td>
+    <td><button class="icon-btn" onclick="marcarPubTratada('${p.id}')" title="Marcar tratada"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+
+function marcarPubTratada(id){
+  carregarPublicacoesLocais();
+  const p=DB.publicacoes.find(x=>x.id===id);
+  if(p){p.status='tratada';localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes));renderPublicacoes();atualizarIndicadores();showToast('Marcada como tratada');}
+}
+
+async function sincPublicacoes(){
+  carregarProcessosLocais();carregarPublicacoesLocais();
+  if(!DB.processos.length){showToast('Cadastre processos primeiro');return;}
+  const btn=document.getElementById('btn-sinc-pub');
+  if(btn){btn.textContent='⟳ Consultando…';btn.disabled=true;}
+  showToast('Consultando DataJud…');
+  let novas=0;
+  const existentes=new Set(DB.publicacoes.map(p=>p.id));
+  for(const proc of DB.processos.slice(0,5)){
+    if(!proc.numero)continue;
+    try{
+      const r=await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},body:JSON.stringify({query:{match:{numeroProcesso:proc.numero}},size:1})});
+      const d=await r.json();const hits=d?.hits?.hits||[];
+      if(hits.length){
+        const movs=(hits[0]._source.movimentos||[]).slice(-3);
+        movs.forEach(m=>{
+          const id=proc.numero+'_'+(m.dataHora||Date.now());
+          if(!existentes.has(id)){
+            DB.publicacoes.push({id,numero:proc.numero,tipo:'publicação',data:m.dataHora?new Date(m.dataHora).toLocaleDateString('pt-BR'):'',conteudo:m.nome||m.descricao||'Movimentação',cliente:proc.cliente||'',status:'nao_tratada'});
+            novas++;
+          }
+        });
+      }
+      await new Promise(r=>setTimeout(r,600));
+    }catch(e){}
+  }
+  localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes));
+  renderPublicacoes();atualizarIndicadores();
+  if(btn){btn.textContent='⟳ Buscar no DataJud';btn.disabled=false;}
+  showToast(novas>0?`${novas} nova(s) encontrada(s)`:'Sem novidades');
+}
+
 // ════════════════════════════════════════
 // INDICADORES TOPBAR & BADGES
 // ════════════════════════════════════════
@@ -1521,6 +1708,8 @@ function renderAll(){
   atualizarSelects();
   atualizarIndicadores();
   carregarProcessosLocais();
+  carregarHonorariosLocais();
+  carregarPublicacoesLocais();
   // Se estiver na página do calendário, re-renderizar
   if(document.getElementById('pg-calendario').classList.contains('on')){
     renderCalPage();
@@ -1580,6 +1769,8 @@ function goPg(id){
   if(id==='documentos') initDocumentos();
   if(id==='expediente') renderExpediente();
   if(id==='processos') renderProcessos();
+  if(id==='honorarios') renderHonorarios();
+  if(id==='publicacoes') renderPublicacoes();
   if(id==='checklist') renderChecklist();
   if(id==='calendario'){ renderCalPage(); renderCalendario(); }
 }
@@ -1678,102 +1869,31 @@ function renderDash(){
 //  KANBAN
 // ══════════════════════════════════════════
 function renderKanban(){
-  const urg = DB.tarefas.filter(t=>t.Urgencia==='Urgente'&&t.Status!=='Concluido');
-  const alt = DB.tarefas.filter(t=>t.Urgencia==='Alta'&&t.Status!=='Concluido');
-  const nor = DB.tarefas.filter(t=>t.Urgencia==='Normal'&&t.Status!=='Concluido');
-  document.getElementById('kc-urg').textContent = urg.length;
-  document.getElementById('kc-alt').textContent = alt.length;
-  document.getElementById('kc-nor').textContent = nor.length;
-  document.getElementById('kb-urgente').innerHTML = urg.slice(0,4).map(t=>taskCardHtml(t)).join('')||'<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">Nenhuma</div>';
-  document.getElementById('kb-alta').innerHTML = alt.slice(0,4).map(t=>taskCardHtml(t)).join('')||'<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">Nenhuma</div>';
-  document.getElementById('kb-normal').innerHTML = nor.slice(0,4).map(t=>taskCardHtml(t)).join('')||'<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">Nenhuma</div>';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const pDt = s => { if(!s) return null; const p = normDt2(s).split('/'); if(p.length<3) return null; const d = new Date(p[2],p[1]-1,p[0]); return isNaN(d)?null:d; };
+  const atrasadas = DB.tarefas.filter(t=>t.Status!=='Concluido'&&t.Vencimento&&pDt(t.Vencimento)<hoje);
+  const urg = DB.tarefas.filter(t=>t.Urgencia==='Urgente'&&t.Status!=='Concluido'&&!(t.Vencimento&&pDt(t.Vencimento)<hoje));
+  const alt = DB.tarefas.filter(t=>t.Urgencia==='Alta'&&t.Status!=='Concluido'&&!(t.Vencimento&&pDt(t.Vencimento)<hoje));
+  const nor = DB.tarefas.filter(t=>t.Urgencia==='Normal'&&t.Status!=='Concluido'&&!(t.Vencimento&&pDt(t.Vencimento)<hoje));
+  const conc = DB.tarefas.filter(t=>t.Status==='Concluido').slice(0,5);
+
+  const setText = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  setText('kc-atrasadas', atrasadas.length);
+  setText('kc-urg', urg.length);
+  setText('kc-alt', alt.length);
+  setText('kc-nor', nor.length);
+  setText('kc-conc', conc.length);
+
+  const empty = '<div style="font-size:11px;color:var(--ink3);padding:8px;text-align:center;">Nenhuma</div>';
+  const setCards = (id, arr) => { const el=document.getElementById(id); if(el) el.innerHTML=arr.slice(0,6).map(t=>taskCardHtml(t)).join('')||empty; };
+  setCards('kb-atrasadas', atrasadas);
+  setCards('kb-urgente', urg);
+  setCards('kb-alta', alt);
+  setCards('kb-normal', nor);
+  setCards('kb-conc', conc);
 }
 
-function urgTag(u){ if(u==='Urgente')return'<span class="tag urg">Urgente</span>'; if(u==='Alta')return'<span class="tag alt">Alta</span>'; return'<span class="tag nor">Normal</span>'; }
-function areaTag(a){ return a?`<span class="tag gy">${a}</span>`:''; }
 
-function taskCardHtml(t){
-  const done = t.Status==='Concluido';
-  return `<div class="task-card${done?' done':''}">
-    <div class="tc-top">
-      <div class="tc-check${done?' done':''}" onclick="toggleTarefa('${t.ID}')">${done?'✓':''}</div>
-      <div class="tc-title">${t.Titulo}</div>
-    </div>
-    <div class="tc-tags">${urgTag(t.Urgencia)}${areaTag(t.Area)}${t.CliNome?`<span class="tag bl">${t.CliNome}</span>`:''}</div>
-    <div class="tc-foot">
-      <div class="tc-resp"><div class="tc-resp-av">${initials(t.Resp)}</div>${t.Resp||'—'}</div>
-      <div class="tc-actions">
-        ${t.Vencimento?`<span style="font-size:10px;color:var(--ink3);font-family:'DM Mono',monospace;">${t.Vencimento}</span>`:''}
-        <button class="icon-btn" onclick="abrirModalTarefa('${t.ID}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button class="icon-btn danger" onclick="delTarefa('${t.ID}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>
-      </div>
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════
-//  TAREFAS — LISTA COMPLETA
-// ══════════════════════════════════════════
-function rTar(){ renderTarefas(); }
-function filtrar(f, el){
-  filAtual=f;
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
-  if(el) el.classList.add('on');
-  renderTarefas();
-}
-function renderTarefas(){
-  let t = [...DB.tarefas];
-  if(filAtual!=='todas'){
-    if(filAtual==='Urgente') t=t.filter(x=>x.Urgencia==='Urgente'&&x.Status!=='Concluido');
-    else t=t.filter(x=>x.Status===filAtual);
-  }
-  const resp = document.getElementById('fil-resp')?.value;
-  const cli  = document.getElementById('fil-cli')?.value;
-  if(resp) t=t.filter(x=>x.Resp===resp);
-  if(cli)  t=t.filter(x=>x.CliID===cli);
-  t.sort((a,b)=>{ const o={Urgente:0,Alta:1,Normal:2}; return (o[a.Urgencia]??3)-(o[b.Urgencia]??3); });
-  const el = document.getElementById('lt');
-  if(!t.length){ el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Nenhuma tarefa</div>'; return; }
-  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:7px;">${t.map(x=>taskCardHtml(x)).join('')}</div>`;
-}
-
-// ══════════════════════════════════════════
-//  CLIENTES
-// ══════════════════════════════════════════
-function rCli(){ renderClientes(); }
-function renderClientes(){
-  let c = [...DB.clientes];
-  const tipo = document.getElementById('fil-tipo-cli')?.value;
-  if(tipo) c=c.filter(x=>x.Tipo===tipo);
-  const el = document.getElementById('lc');
-  if(!c.length){ el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>Nenhum cliente</div>'; return; }
-  el.innerHTML = c.map(x=>`
-    <div class="client-card">
-      <div class="client-head">
-        <div class="client-av">${initials(x.Nome)}</div>
-        <div class="client-info">
-          <div class="client-name">${x.Nome}</div>
-          <div class="client-sub">${x.Setor||'—'}</div>
-        </div>
-      </div>
-      <div class="client-tags">
-        <span class="tag ${x.Status==='Ativo'?'ok':'gy'}">${x.Status||'Ativo'}</span>
-        <span class="tag ${x.Tipo==='Recorrente'?'nor':'gold'}">${x.Tipo||'—'}</span>
-        ${x.Responsavel?`<span class="tag bl">${x.Responsavel}</span>`:''}
-      </div>
-      <div class="client-foot">
-        <button class="btn sm" onclick="abrirModalCliente('${x.ID}')">
-          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Editar
-        </button>
-        <button class="btn sm danger" onclick="delCliente('${x.ID}')">Excluir</button>
-      </div>
-    </div>`).join('');
-}
-
-// ══════════════════════════════════════════
-//  CALENDÁRIO
-// ══════════════════════════════════════════
 function renderCalendario(){
   const el = document.getElementById('le');
   const evs = [...DB.calendario].sort((a,b)=>{
