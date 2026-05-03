@@ -601,180 +601,44 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .dash-grid{grid-template-columns:1fr;}
 }
 
-/* ══ MICROINTERAÇÕES ══════════════════════════════════════════ */
+/* ── Indicadores topbar estilo eLaw ── */
+.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px}
+.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:72px}
+.ti-item:hover{background:var(--sf2)}
+.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2}
+.ti-num.ti-red{color:var(--red)}
+.ti-num.ti-amb{color:var(--amb)}
+.ti-num.ti-grn{color:var(--grn)}
+.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap;letter-spacing:.03em}
 
-/* Botões — press feedback */
-.btn:active, .btn-save:active, .login-btn:active,
-.btn-topbar:active, .icon-btn:active {
-  transform: scale(0.96);
-}
-.btn { transition: all .18s cubic-bezier(.4,0,.2,1); }
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(45,74,62,0.15);
-}
-.btn.primary:hover:not(:disabled) {
-  box-shadow: 0 3px 12px rgba(45,74,62,0.35);
-}
-.btn:disabled, .btn-save:disabled, .login-btn:disabled {
-  opacity: .6; cursor: not-allowed; transform: none !important;
-}
+/* ── Expediente cards ── */
+.exp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.exp-card{background:var(--sf);border-radius:var(--radius);padding:14px 16px;border:1px solid var(--br);cursor:pointer;transition:all .18s}
+.exp-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.exp-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.exp-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.exp-num{font-size:26px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.exp-lbl{font-size:11px;color:var(--ink3);margin-top:3px;font-weight:500}
 
-/* Cards — hover lift */
-.task-card { transition: box-shadow .18s, transform .18s; }
-.task-card:hover { transform: translateY(-2px); }
-.client-card { transition: box-shadow .18s, transform .18s; }
-.client-card:hover { transform: translateY(-2px); }
-.ev-card { transition: box-shadow .18s, transform .18s; }
-.ev-card:hover { transform: translateY(-2px); }
-.stat-card { transition: box-shadow .18s, transform .18s; }
-.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(45,74,62,0.12); }
+/* ── Tabela genérica ── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);padding:8px 12px;border-bottom:2px solid var(--br2)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--br);vertical-align:middle}
+.tbl tr:hover td{background:var(--sf2)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl-mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--blu)}
 
-/* Nav items — slide indicator */
-.nav-item { transition: background .15s, color .15s, padding-left .15s; }
-.nav-item:hover:not(.on) { padding-left: 14px; }
+/* ── Nav badges ── */
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px;min-width:16px;text-align:center}
+.nav-badge.gold-badge{background:var(--gold);color:var(--jade-dk)}
 
-/* Checklist items */
-.ck-item { transition: border-color .15s, background .15s; }
-.ck-btn { transition: all .15s; }
-.ck-btn:hover { transform: scale(1.05); }
-.ck-btn:active { transform: scale(0.95); }
-
-/* Modal — fade + slide */
-#modal-overlay {
-  transition: opacity .2s;
-  opacity: 0;
-}
-#modal-overlay.visible {
-  opacity: 1;
-}
-#modal-overlay .modal {
-  transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .22s;
-  transform: translateY(16px) scale(0.98);
-  opacity: 0;
-}
-#modal-overlay.visible .modal {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-/* Sync / topbar */
-.sync-btn { transition: all .18s; }
-.sync-btn:hover { transform: rotate(30deg) scale(1.1); }
-.sync-btn.spinning { animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Toggle check */
-.tc-check { transition: background .15s, border-color .15s, transform .15s; }
-.tc-check:active { transform: scale(0.85); }
-.tc-check.done { animation: checkPop .25s cubic-bezier(.34,1.56,.64,1); }
-@keyframes checkPop {
-  0% { transform: scale(0.7); }
-  100% { transform: scale(1); }
-}
-
-/* Tag / badge */
-.tag { transition: opacity .15s; }
-
-/* ══ LOADING STATE ═════════════════════════════════════════════ */
-
-/* Spinner inline para botões */
-.btn-spinner {
-  display: inline-block;
-  width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,0.35);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .6s linear infinite;
-  vertical-align: middle;
-  margin-right: 6px;
-}
-.btn.primary .btn-spinner,
-.btn-save .btn-spinner,
-.login-btn .btn-spinner {
-  border-color: rgba(255,255,255,0.3);
-  border-top-color: #fff;
-}
-.btn:not(.primary) .btn-spinner {
-  border-color: rgba(45,74,62,0.2);
-  border-top-color: var(--jade);
-}
-
-/* Skeleton loader para listas */
-.skeleton {
-  background: linear-gradient(90deg, var(--sf2) 25%, var(--bg) 50%, var(--sf2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: var(--radius-sm);
-  height: 60px;
-  margin-bottom: 8px;
-}
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* Estado de salvando no modal */
-.saving-overlay {
-  position: absolute; inset: 0;
-  background: rgba(255,255,255,0.75);
-  border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10;
-  backdrop-filter: blur(2px);
-}
-.saving-msg {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; font-weight: 500; color: var(--jade);
-}
-.modal { position: relative; }
-
-/* ══ EMPTY STATES MELHORADOS ═══════════════════════════════════ */
-
-.empty {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--ink3);
-  font-size: 12px;
-  background: var(--sf);
-  border-radius: var(--radius);
-  border: 1.5px dashed var(--br2);
-}
-.empty-icon-wrap {
-  width: 56px; height: 56px;
-  background: var(--jade);
-  background: linear-gradient(135deg, var(--jade) 0%, var(--jade-lt) 100%);
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 14px;
-  opacity: .18;
-}
-.empty-icon-wrap svg {
-  width: 26px; height: 26px;
-  stroke: #fff; fill: none; stroke-width: 1.8;
-}
-.empty-title {
-  font-size: 13px; font-weight: 600;
-  color: var(--ink2); margin-bottom: 4px;
-}
-.empty-sub {
-  font-size: 11px; color: var(--ink3); margin-bottom: 14px;
-  line-height: 1.5;
-}
-.empty-action {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 16px; border-radius: 7px;
-  background: var(--jade); color: #fff;
-  font-size: 11px; font-weight: 600;
-  cursor: pointer; border: none;
-  font-family: 'DM Sans', sans-serif;
-  transition: all .18s;
-}
-.empty-action:hover {
-  background: var(--jade-lt);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(45,74,62,0.25);
-}
+/* ── Future placeholder ── */
+.future-ph{text-align:center;padding:60px 30px;background:var(--sf);border-radius:var(--radius);border:1px solid var(--br)}
+.fp-icon-big{width:64px;height:64px;background:var(--gold-dim);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border:1px solid var(--gold-border)}
+.fp-icon-big svg{width:30px;height:30px;stroke:var(--jade);fill:none;stroke-width:1.5}
+.fp-title{font-family:'Crimson Pro',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.fp-sub{font-size:12px;color:var(--ink3);max-width:380px;margin:0 auto;line-height:1.6}
+.fp-badge{display:inline-flex;align-items:center;gap:4px;background:var(--gold-dim);color:var(--jade);border:1px solid var(--gold-border);border-radius:99px;padding:3px 12px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:14px}
 
 </style>
 </head>
@@ -821,35 +685,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   <span class="logo-gold"></span>
 
   <div class="nav-section">
-    <div class="nav-label">Principal</div>
+    <div class="nav-label">Visão Geral</div>
     <div class="nav-item on" id="nav-dashboard" onclick="goPg('dashboard')">
       <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span>Painel</span>
+    </div>
+    <div class="nav-item" id="nav-expediente" onclick="goPg('expediente')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      <span>Expediente do Dia</span>
+      <span class="nav-badge" id="nb-expediente" style="display:none">0</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Processos & Agenda</div>
+    <div class="nav-item" id="nav-processos" onclick="goPg('processos')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>Meus Processos</span>
+    </div>
+    <div class="nav-item" id="nav-publicacoes" onclick="goPg('publicacoes')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Publicações</span>
+      <span class="nav-badge" id="nb-publicacoes" style="display:none">0</span>
+    </div>
+    <div class="nav-item" id="nav-calendario" onclick="goPg('calendario')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span>Agenda & Prazos</span>
     </div>
     <div class="nav-item" id="nav-tarefas" onclick="goPg('tarefas')">
       <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       <span>Tarefas</span>
       <span class="nav-badge" id="nav-badge-tarefas" style="display:none">0</span>
     </div>
-    <div class="nav-item" id="nav-clientes" onclick="goPg('clientes')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg>
-      <span>Clientes</span>
-    </div>
   </div>
 
   <div class="nav-section">
-    <div class="nav-label">Operacional</div>
-    <div class="nav-item" id="nav-checklist" onclick="goPg('checklist')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><polyline points="9 12 11 14 15 10"/></svg>
-      <span>Checklist</span>
-    </div>
-    <div class="nav-item" id="nav-relatorio" onclick="goPg('relatorio')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      <span>Relatório</span>
-    </div>
-    <div class="nav-item" id="nav-maturidade" onclick="goPg('maturidade')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-      <span>Maturidade</span>
+    <div class="nav-label">Clientes & Docs</div>
+    <div class="nav-item" id="nav-clientes" onclick="goPg('clientes')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      <span>Clientes</span>
     </div>
     <div class="nav-item" id="nav-documentos" onclick="goPg('documentos')">
       <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
@@ -858,53 +732,41 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   </div>
 
   <div class="nav-section">
-    <div class="nav-label">Monitoramento</div>
-    <div class="nav-item" id="nav-calendario" onclick="goPg('calendario')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>Calendário</span>
+    <div class="nav-label">Gestão Jurídica</div>
+    <div class="nav-item" id="nav-checklist" onclick="goPg('checklist')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><polyline points="9 12 11 14 15 10"/></svg>
+      <span>Checklist</span>
+    </div>
+    <div class="nav-item" id="nav-relatorio" onclick="goPg('relatorio')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+      <span>Relatório</span>
+    </div>
+    <div class="nav-item" id="nav-maturidade" onclick="goPg('maturidade')">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+      <span>Maturidade</span>
     </div>
     <div class="nav-item" id="nav-radar" onclick="goPg('radar')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/></svg>
-      <span>Radar</span>
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <span>Radar Legislativo</span>
     </div>
   </div>
 
   <div class="nav-section">
-    <div class="nav-label">CRM — Em breve</div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-      <span>Gestão de Clientes</span>
-    </div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
+    <div class="nav-label">Financeiro</div>
+    <div class="nav-item" id="nav-honorarios" onclick="goPg('honorarios')">
       <svg class="nav-icon" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
       <span>Honorários</span>
     </div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
+    <div class="nav-item" id="nav-crm" onclick="goPg('crm')">
       <svg class="nav-icon" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span>Pipeline</span>
-    </div>
-  </div>
-
-  <div class="nav-section">
-    <div class="nav-label">Jurídico — Em breve</div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
-      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3l1.5 4.5H18l-3.75 2.7 1.5 4.5L12 12l-3.75 2.7 1.5-4.5L6 7.5h4.5z"/><path d="M12 22V12"/></svg>
-      <span>Peças com IA</span>
-    </div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
-      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <span>Publicações</span>
-    </div>
-    <div class="nav-item future" title="Módulo em desenvolvimento">
-      <svg class="nav-icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      <span>Jurisprudência</span>
+      <span>CRM & Pipeline</span>
     </div>
   </div>
 
   <div class="nav-section">
     <div class="nav-label">Configuração</div>
     <div class="nav-item" id="nav-usuarios" onclick="goPg('usuarios')">
-      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/><line x1="12" y1="12" x2="12" y2="21"/></svg>
+      <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>
       <span>Usuários</span>
     </div>
   </div>
@@ -936,6 +798,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div class="topbar-titles">
         <div class="topbar-title" id="page-title">Painel</div>
         <div class="topbar-sub" id="page-sub">Visão geral do escritório</div>
+      </div>
+    </div>
+    <!-- Indicadores estilo eLaw -->
+    <div class="topbar-indicators">
+      <div class="ti-item" onclick="goPg('calendario')" title="Prazos da semana">
+        <div class="ti-num ti-amb" id="ti-prazos">0</div>
+        <div class="ti-lbl">Prazos semana</div>
+      </div>
+      <div class="ti-item" onclick="goPg('tarefas')" title="Urgentes">
+        <div class="ti-num ti-red" id="ti-urgentes">0</div>
+        <div class="ti-lbl">Urgentes</div>
+      </div>
+      <div class="ti-item" onclick="goPg('processos')" title="Processos">
+        <div class="ti-num" id="ti-processos">0</div>
+        <div class="ti-lbl">Processos</div>
+      </div>
+      <div class="ti-item" onclick="goPg('clientes')" title="Clientes ativos">
+        <div class="ti-num ti-grn" id="ti-clientes">0</div>
+        <div class="ti-lbl">Clientes</div>
       </div>
     </div>
     <div class="topbar-actions" id="page-actions"></div>
@@ -1041,7 +922,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
               <span class="card-link" onclick="goPg('clientes')">ver todos →</span>
             </div>
             <div class="card-body" id="dash-clientes-list">
-              ${emptyState("clientes","Nenhum cliente cadastrado","Adicione seu primeiro cliente para começar a gestão.","+ Novo cliente","abrirModalCliente()")}}}
+              <div class="empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4"/></svg>Nenhum cliente</div>
             </div>
           </div>
         </div>
@@ -1214,6 +1095,49 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <!-- ══ PLACEHOLDERS FUTUROS ══ -->
+    <!-- ══ EXPEDIENTE DO DIA ══ -->
+    <div class="pg" id="pg-expediente">
+      <div class="exp-grid" id="exp-cards"></div>
+      <div class="dash-sec">
+        <div class="sh">
+          <span class="st">Publicações, Prazos & Andamentos</span>
+          <div class="sh-actions">
+            <select class="filter-sel" id="exp-tipo-fil" onchange="renderExpedienteLista()">
+              <option value="">Todos os tipos</option>
+              <option value="prazo">Prazos</option>
+              <option value="tarefa">Tarefas urgentes</option>
+              <option value="evento">Eventos</option>
+            </select>
+          </div>
+        </div>
+        <div id="exp-lista" style="padding:4px 0"></div>
+      </div>
+    </div>
+
+    <!-- ══ PROCESSOS ══ -->
+    <div class="pg" id="pg-processos">
+      <div class="stats" id="proc-stats" style="margin-bottom:16px"></div>
+      <div class="dash-sec">
+        <div class="sh">
+          <span class="st">Meus Processos</span>
+          <div class="sh-actions">
+            <input class="filter-input" id="proc-busca" placeholder="Nº processo ou parte..." style="width:200px" oninput="renderProcessos()">
+            <select class="filter-sel" id="proc-status-fil" onchange="renderProcessos()">
+              <option value="">Todos</option>
+              <option value="Ativo">Ativo</option>
+              <option value="Encerrado">Encerrado</option>
+            </select>
+            <select class="filter-sel" id="proc-tribunal-fil" onchange="renderProcessos()">
+              <option value="">Todos os tribunais</option>
+              <option>TJ-SP</option><option>TJ-MG</option><option>TRT-SP</option>
+              <option>TRF-3</option><option>STJ</option><option>STF</option><option>Outros</option>
+            </select>
+          </div>
+        </div>
+        <div id="proc-lista" style="padding:4px 0"></div>
+      </div>
+    </div>
+
     <div class="pg" id="pg-crm">
       <div class="future-placeholder">
         <div class="fp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
@@ -1403,10 +1327,179 @@ function mostrarApp(){
 // ══════════════════════════════════════════
 //  LOAD DATA
 // ══════════════════════════════════════════
+async 
+// ════════════════════════════════════════
+// INDICADORES TOPBAR & BADGES
+// ════════════════════════════════════════
+function atualizarIndicadores(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const semFim = new Date(hoje); semFim.setDate(hoje.getDate()+7);
+  const prazos = DB.tarefas.filter(t=>{
+    if(t.Status==='Concluido'||!t.Vencimento) return false;
+    const p=normDt2(t.Vencimento).split('/');if(p.length<3)return false;
+    const d=new Date(p[2],p[1]-1,p[0]);return d>=hoje&&d<=semFim;
+  }).length + DB.calendario.filter(e=>{
+    if(e.Concluido==='Sim'||!e.Data) return false;
+    const p=normDt2(e.Data).split('/');if(p.length<3)return false;
+    const d=new Date(p[2],p[1]-1,p[0]);return d>=hoje&&d<=semFim;
+  }).length;
+  const urgentes = DB.tarefas.filter(t=>t.Urgencia==='Urgente'&&t.Status!=='Concluido').length;
+  const processos = (DB.processos||[]).length;
+  const cliAtivos = DB.clientes.filter(c=>c.Status==='Ativo').length;
+  const atrasadas = DB.tarefas.filter(t=>{
+    if(t.Status==='Concluido'||!t.Vencimento) return false;
+    const p=normDt2(t.Vencimento).split('/');if(p.length<3)return false;
+    return new Date(p[2],p[1]-1,p[0])<hoje;
+  }).length;
+  const st=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  st('ti-prazos',prazos);st('ti-urgentes',urgentes);st('ti-processos',processos);st('ti-clientes',cliAtivos);
+  const sb=(id,n)=>{const el=document.getElementById(id);if(!el)return;el.textContent=n;el.style.display=n>0?'':'none';};
+  sb('nb-expediente',prazos+atrasadas);sb('nav-badge-tarefas',urgentes);sb('nb-publicacoes',0);
+}
+
+// Alias para normDt — compatibilidade
+function normDt2(s){
+  if(!s)return'';s=String(s).trim();
+  if(s.includes('-')&&s.length<=10){const p=s.split('-');if(p.length===3)return p[2]+'/'+p[1]+'/'+p[0];}
+  if(s.length>10&&s.includes(' ')){try{const d=new Date(s);if(!isNaN(d.getTime()))return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}catch(e){}}
+  return s;
+}
+
+// ════════════════════════════════════════
+// EXPEDIENTE DO DIA
+// ════════════════════════════════════════
+function renderExpediente(){
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const semFim=new Date(hoje);semFim.setDate(hoje.getDate()+7);
+  const pDt=(s)=>{if(!s)return null;const p=normDt2(s).split('/');if(p.length<3)return null;const d=new Date(p[2],p[1]-1,p[0]);return isNaN(d)?null:d;};
+  const prazos=DB.tarefas.filter(t=>{if(t.Status==='Concluido'||!t.Vencimento)return false;const d=pDt(t.Vencimento);return d&&d>=hoje&&d<=semFim;}).length+DB.calendario.filter(e=>{if(e.Concluido==='Sim'||!e.Data)return false;const d=pDt(e.Data);return d&&d>=hoje&&d<=semFim;}).length;
+  const urgentes=DB.tarefas.filter(t=>t.Urgencia==='Urgente'&&t.Status!=='Concluido').length;
+  const atrasadas=DB.tarefas.filter(t=>{if(t.Status==='Concluido'||!t.Vencimento)return false;const d=pDt(t.Vencimento);return d&&d<hoje;}).length;
+  const pendentes=DB.tarefas.filter(t=>t.Status==='Pendente'||t.Status==='Em andamento').length;
+  const cliAtivos=DB.clientes.filter(c=>c.Status==='Ativo').length;
+  const processos=(DB.processos||[]).length;
+  const eventosHj=DB.calendario.filter(e=>{if(e.Concluido==='Sim'||!e.Data)return false;const d=pDt(e.Data);return d&&d.toDateString()===hoje.toDateString();}).length;
+  const conclMes=DB.tarefas.filter(t=>{if(t.Status!=='Concluido'||!t.Conclusao)return false;const p=normDt2(t.Conclusao).split('/');return p.length>=3&&parseInt(p[1])-1===hoje.getMonth()&&parseInt(p[2])===hoje.getFullYear();}).length;
+
+  const cards=[
+    {lbl:'Prazos da semana',num:prazos,cor:'var(--amb)',bg:'var(--abg)',pg:'calendario',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
+    {lbl:'Urgentes',num:urgentes,cor:'var(--red)',bg:'var(--rbg)',pg:'tarefas',icon:'<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>'},
+    {lbl:'Atrasadas',num:atrasadas,cor:'var(--red)',bg:'var(--rbg)',pg:'tarefas',icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'},
+    {lbl:'Eventos hoje',num:eventosHj,cor:'var(--jade)',bg:'var(--gold-dim)',pg:'calendario',icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>'},
+    {lbl:'Pendentes',num:pendentes,cor:'var(--ink2)',bg:'var(--sf2)',pg:'tarefas',icon:'<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>'},
+    {lbl:'Processos',num:processos,cor:'var(--blu)',bg:'var(--bbg)',pg:'processos',icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>'},
+    {lbl:'Concluídas/mês',num:conclMes,cor:'var(--grn)',bg:'var(--gbg)',pg:'tarefas',icon:'<polyline points="20 6 9 17 4 12"/>'},
+    {lbl:'Clientes ativos',num:cliAtivos,cor:'var(--jade)',bg:'var(--gold-dim)',pg:'clientes',icon:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>'},
+  ];
+  const expEl=document.getElementById('exp-cards');
+  if(expEl) expEl.innerHTML=cards.map(card=>`<div class="exp-card" onclick="goPg('${card.pg}')"><div class="exp-icon" style="background:${card.bg}"><svg viewBox="0 0 24 24" style="stroke:${card.cor};fill:none;stroke-width:1.8;width:18px;height:18px">${card.icon}</svg></div><div class="exp-num" style="color:${card.num>0&&card.cor.includes('red')?card.cor:'var(--ink)'}">${card.num}</div><div class="exp-lbl">${card.lbl}</div></div>`).join('');
+  renderExpedienteLista();
+}
+
+function renderExpedienteLista(){
+  const hoje=new Date();hoje.setHours(0,0,0,0);
+  const semFim=new Date(hoje);semFim.setDate(hoje.getDate()+7);
+  const pDt=(s)=>{if(!s)return null;const p=normDt2(s).split('/');if(p.length<3)return null;const d=new Date(p[2],p[1]-1,p[0]);return isNaN(d)?null:d;};
+  const filtroTipo=document.getElementById('exp-tipo-fil')?.value||'';
+  let itens=[];
+  if(!filtroTipo||filtroTipo==='tarefa'){
+    DB.tarefas.filter(t=>t.Status!=='Concluido').forEach(t=>{
+      const d=pDt(t.Vencimento);const atrasada=d&&d<hoje;const urgente=t.Urgencia==='Urgente';
+      if(atrasada||urgente)itens.push({tipo:'tarefa',titulo:t.Titulo,cli:t.CliNome||'Geral',data:normDt2(t.Vencimento)||'—',status:atrasada?'Atrasada':'Urgente',id:t.ID,_d:d||new Date(9999,0)});
+    });
+  }
+  if(!filtroTipo||filtroTipo==='prazo'){
+    DB.tarefas.filter(t=>{if(t.Status==='Concluido'||!t.Vencimento)return false;const d=pDt(t.Vencimento);return d&&d>=hoje&&d<=semFim;}).forEach(t=>{
+      if(!itens.find(i=>i.id===t.ID))itens.push({tipo:'prazo',titulo:t.Titulo,cli:t.CliNome||'Geral',data:normDt2(t.Vencimento),status:'Prazo',id:t.ID,_d:pDt(t.Vencimento)});
+    });
+  }
+  if(!filtroTipo||filtroTipo==='evento'){
+    DB.calendario.filter(e=>{if(e.Concluido==='Sim'||!e.Data)return false;const d=pDt(e.Data);return d&&d>=hoje&&d<=semFim;}).forEach(e=>{
+      itens.push({tipo:'evento',titulo:e.Desc,cli:e.CliNome||'Geral',data:normDt2(e.Data),status:'Evento',id:e.ID,_d:pDt(e.Data)});
+    });
+  }
+  itens.sort((a,b)=>a._d-b._d);
+  const el=document.getElementById('exp-lista');if(!el)return;
+  if(!itens.length){el.innerHTML='<div class="empty" style="margin:8px 0;padding:20px"><div class="empty-sub" style="margin:0">Nenhuma pendência crítica no momento</div></div>';return;}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Tipo</th><th>Título</th><th>Cliente</th><th>Data</th><th>Status</th></tr></thead><tbody>${itens.map(i=>`<tr><td><span class="tag ${i.tipo==='evento'?'jade':i.tipo==='prazo'?'alt':'urg'}">${i.tipo}</span></td><td style="font-weight:500;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.titulo.replace(/</g,'&lt;')}</td><td style="color:var(--ink3)">${(i.cli||'').replace(/</g,'&lt;')}</td><td style="font-family:'DM Mono',monospace;color:var(--ink3);white-space:nowrap">${i.data.slice(0,10)}</td><td><span class="tag ${i.status==='Atrasada'||i.status==='Urgente'?'urg':i.status==='Prazo'?'alt':'jade'}">${i.status}</span></td></tr>`).join('')}</tbody></table>`;
+}
+
+// ════════════════════════════════════════
+// PROCESSOS
+// ════════════════════════════════════════
+function carregarProcessosLocais(){
+  const s=localStorage.getItem('littera_processos');
+  if(s)try{DB.processos=JSON.parse(s);}catch(e){}
+  if(!DB.processos)DB.processos=[];
+}
+
+function renderProcessos(){
+  carregarProcessosLocais();
+  const busca=(document.getElementById('proc-busca')?.value||'').toLowerCase();
+  const statusFil=document.getElementById('proc-status-fil')?.value||'';
+  const tribunalFil=document.getElementById('proc-tribunal-fil')?.value||'';
+  let lista=[...DB.processos];
+  if(busca)lista=lista.filter(p=>(p.numero||'').toLowerCase().includes(busca)||(p.partes||'').toLowerCase().includes(busca));
+  if(statusFil)lista=lista.filter(p=>p.status===statusFil);
+  if(tribunalFil)lista=lista.filter(p=>(p.tribunal||'').includes(tribunalFil));
+  const statsEl=document.getElementById('proc-stats');
+  if(statsEl) statsEl.innerHTML=`<div class="stat-card c1"><div class="stat-num">${lista.length}</div><div class="stat-lbl">Total</div></div><div class="stat-card c4"><div class="stat-num">${lista.filter(p=>p.status==='Ativo').length}</div><div class="stat-lbl">Ativos</div></div><div class="stat-card c3"><div class="stat-num">${lista.filter(p=>{if(!p.ultimaMov)return true;return(Date.now()-new Date(p.ultimaMov).getTime())>60*86400000;}).length}</div><div class="stat-lbl">Sem mov. 60+ dias</div></div><div class="stat-card c2"><div class="stat-num">${lista.filter(p=>p.status==='Encerrado').length}</div><div class="stat-lbl">Encerrados</div></div>`;
+  const el=document.getElementById('proc-lista');if(!el)return;
+  if(!lista.length){el.innerHTML='<div class="empty" style="margin:8px"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="empty-title">Nenhum processo cadastrado</div><div class="empty-sub">Cadastre seus processos para acompanhar movimentações.</div><button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button></div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Nº do Processo</th><th>Tribunal</th><th>Partes</th><th>Cliente</th><th>Última mov.</th><th>Status</th><th></th></tr></thead><tbody>${lista.map(p=>`<tr><td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--blu)">${p.numero||'—'}</td><td style="font-size:11px;color:var(--ink3)">${p.tribunal||'—'}</td><td style="font-size:11px;color:var(--ink2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.partes||'—'}</td><td style="font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td><td style="font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace">${p.ultimaMov?new Date(p.ultimaMov).toLocaleDateString('pt-BR'):'—'}</td><td><span class="tag ${p.status==='Ativo'?'ok':'gy'}">${p.status||'Ativo'}</span></td><td style="display:flex;gap:3px"><button class="icon-btn" onclick="consultarDataJud('${(p.numero||'').replace(/'/g,"\'")}','${p.id||''}')" title="Consultar DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button><button class="icon-btn danger" onclick="delProcesso('${p.id||''}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirModalProcesso(){
+  const cliOpts=DB.clientes.map(c=>`<option value="${c.Nome.replace(/"/g,'&quot;')}">${c.Nome.replace(/</g,'&lt;')}</option>`).join('');
+  abrirModal('Cadastrar Processo',`
+    <div class="form-group"><label>Número CNJ *</label><input id="mp-num" type="text" placeholder="0000000-00.0000.0.00.0000"></div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Tribunal *</label><select id="mp-trib"><option>TJ-SP</option><option>TJ-MG</option><option>TRT-SP</option><option>TRF-3</option><option>STJ</option><option>STF</option><option>Outros</option></select></div>
+      <div class="form-group"><label>Área</label><select id="mp-area"><option>Cível</option><option>Trabalhista</option><option>Tributário</option><option>Criminal</option><option>Outros</option></select></div>
+    </div>
+    <div class="form-group"><label>Cliente</label><select id="mp-cli"><option value="">— Sem vínculo —</option>${cliOpts}</select></div>
+    <div class="form-group"><label>Partes (Autor / Réu)</label><input id="mp-partes" type="text" placeholder="João Silva x Empresa ABC"></div>
+    <div class="form-row-2">
+      <div class="form-group"><label>Status</label><select id="mp-status"><option value="Ativo">Ativo</option><option value="Encerrado">Encerrado</option></select></div>
+      <div class="form-group"><label>Observações</label><input id="mp-obs" type="text"></div>
+    </div>`,
+  ()=>{
+    const num=document.getElementById('mp-num').value.trim();
+    if(!num){showToast('Informe o número');return;}
+    carregarProcessosLocais();
+    DB.processos.push({id:uid(),numero:num,tribunal:document.getElementById('mp-trib').value,area:document.getElementById('mp-area').value,cliente:document.getElementById('mp-cli').value,partes:document.getElementById('mp-partes').value,status:document.getElementById('mp-status').value,obs:document.getElementById('mp-obs').value,cadastradoEm:new Date().toISOString(),ultimaMov:null});
+    localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
+    fecharModal();renderProcessos();atualizarIndicadores();showToast('Processo cadastrado!');
+  });
+}
+
+function delProcesso(id){
+  if(!confirm('Excluir processo?'))return;
+  carregarProcessosLocais();
+  DB.processos=DB.processos.filter(p=>p.id!==id);
+  localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
+  renderProcessos();atualizarIndicadores();showToast('Excluído');
+}
+
+async function consultarDataJud(numero,procId){
+  if(!numero){showToast('Número não informado');return;}
+  showToast('Consultando DataJud…');
+  try{
+    const r=await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},body:JSON.stringify({query:{match:{numeroProcesso:numero}},size:1})});
+    const d=await r.json();const hits=d?.hits?.hits||[];
+    if(!hits.length){showToast('Nenhum resultado no DataJud');return;}
+    const proc=hits[0]._source;const movs=(proc.movimentos||[]).slice(-10).reverse();
+    carregarProcessosLocais();
+    const p=(DB.processos||[]).find(x=>x.id===procId);
+    if(p&&movs.length){p.ultimaMov=movs[0].dataHora;localStorage.setItem('littera_processos',JSON.stringify(DB.processos));}
+    abrirModal('Movimentações — '+numero,`<div style="font-size:11px;color:var(--ink3);margin-bottom:12px">${(proc.classeProcessual?.nome||'')} · ${(proc.orgaoJulgador?.nome||'')}</div>${movs.length?`<table class="tbl"><thead><tr><th>Data</th><th>Movimentação</th></tr></thead><tbody>${movs.map(m=>`<tr><td style="font-family:'DM Mono',monospace;white-space:nowrap;color:var(--ink3);font-size:11px">${m.dataHora?new Date(m.dataHora).toLocaleDateString('pt-BR'):'—'}</td><td style="font-size:12px">${(m.nome||m.descricao||'Movimentação').replace(/</g,'&lt;')}</td></tr>`).join('')}</tbody></table>`:'<div style="color:var(--ink3);font-size:12px">Sem movimentações registradas</div>'}`,null);
+    document.getElementById('modal-footer').innerHTML='<button class="btn" onclick="fecharModal()">Fechar</button>';
+    renderProcessos();showToast('Dados atualizados!');
+  }catch(e){showToast('Erro DataJud: '+e.message);}
+}
+
 async function loadData(){
   showToast('Carregando dados…');
-  const syncBtn = document.querySelector('.sync-btn');
-  if(syncBtn) syncBtn.classList.add('spinning');
   try{
     const r = await fetch(API,{method:'POST',body:JSON.stringify({action:'getAll'})});
     const d = await r.json();
@@ -1416,7 +1509,6 @@ async function loadData(){
       showToast('Dados atualizados ✓');
     }
   }catch(e){ showToast('Erro ao carregar dados'); }
-  finally{ if(syncBtn) syncBtn.classList.remove('spinning'); }
 }
 
 function renderAll(){
@@ -1427,6 +1519,8 @@ function renderAll(){
   renderRadar();
   renderUsuarios();
   atualizarSelects();
+  atualizarIndicadores();
+  carregarProcessosLocais();
   // Se estiver na página do calendário, re-renderizar
   if(document.getElementById('pg-calendario').classList.contains('on')){
     renderCalPage();
@@ -1437,11 +1531,13 @@ function renderAll(){
 //  NAVEGAÇÃO
 // ══════════════════════════════════════════
 const PAGE_TITLES = {
-  dashboard:'Painel', tarefas:'Tarefas', clientes:'Clientes',
+  dashboard:'Painel', expediente:'Expediente do Dia', processos:'Meus Processos',
+  tarefas:'Tarefas', clientes:'Clientes', calendario:'Agenda & Prazos',
   checklist:'Checklist', relatorio:'Relatório Mensal', maturidade:'Maturidade Jurídica',
-  documentos:'Documentos', calendario:'Calendário', radar:'Radar Legislativo',
-  usuarios:'Usuários', crm:'CRM', honorarios:'Honorários',
-  'peças':'Gerador de Peças', publicacoes:'Publicações'
+  documentos:'Documentos', radar:'Radar Legislativo',
+  honorarios:'Honorários', publicacoes:'Publicações',
+  crm:'CRM & Pipeline', usuarios:'Usuários',
+  'peças':'Gerador de Peças'
 };
 const PAGE_SUBS = {
   dashboard:'Visão geral do escritório', tarefas:'Gestão de tarefas e prazos',
@@ -1454,6 +1550,8 @@ const PAGE_SUBS = {
 };
 const PAGE_ACTIONS = {
   dashboard: () => `<button class="btn-topbar" onclick="loadData()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Sincronizar</button>`,
+  expediente: () => ``,
+  processos: () => `<button class="btn-topbar primary" onclick="abrirModalProcesso()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Cadastrar processo</button>`,
   tarefas:  () => `<button class="btn-topbar primary" onclick="abrirModalTarefa()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova tarefa</button>`,
   clientes: () => `<button class="btn-topbar primary" onclick="abrirModalCliente()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo cliente</button>`,
   calendario: () => `<button class="btn-topbar primary" onclick="abrirModalEvento()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo evento</button>`,
@@ -1480,6 +1578,8 @@ function goPg(id){
   if(id==='relatorio') renderRelatorio();
   if(id==='maturidade') renderMaturidade();
   if(id==='documentos') initDocumentos();
+  if(id==='expediente') renderExpediente();
+  if(id==='processos') renderProcessos();
   if(id==='checklist') renderChecklist();
   if(id==='calendario'){ renderCalPage(); renderCalendario(); }
 }
@@ -1488,45 +1588,6 @@ function goPg(id){
 //  TOAST
 // ══════════════════════════════════════════
 let toastTimer;
-function setBtnLoading(btn, loading, textoOriginal){
-  if(!btn) return;
-  if(loading){
-    btn._texto = btn.innerHTML;
-    btn.innerHTML = '<span class="btn-spinner"></span>' + (textoOriginal||'Salvando...');
-    btn.disabled = true;
-  } else {
-    btn.innerHTML = btn._texto || textoOriginal || 'Salvar';
-    btn.disabled = false;
-  }
-}
-
-function emptyState(icon, title, sub, actionLabel, actionFn){
-  const iconSvg = {
-    clientes: '<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>',
-    tarefas: '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
-    calendario: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    radar: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-    documentos: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-    checklist: '<rect x="9" y="11" width="13" height="13" rx="2" ry="2"/><path d="M5 7H4a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-1"/>',
-    usuarios: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
-    default: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'
-  };
-  const svg = iconSvg[icon] || iconSvg.default;
-  const action = actionLabel && actionFn
-    ? `<button class="empty-action" onclick="${actionFn}">${actionLabel}</button>`
-    : '';
-  return `<div class="empty">
-    <div class="empty-icon-wrap"><svg viewBox="0 0 24 24">${svg}</svg></div>
-    <div class="empty-title">${title}</div>
-    <div class="empty-sub">${sub}</div>
-    ${action}
-  </div>`;
-}
-
-function skeletonList(n){
-  return Array(n||3).fill('<div class="skeleton"></div>').join('');
-}
-
 function showToast(msg, dur=2200){
   const t = document.getElementById('toast');
   t.textContent = msg; t.style.display='block';
@@ -1540,20 +1601,10 @@ function showToast(msg, dur=2200){
 function abrirModal(title, bodyHtml, onSave){
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-body').innerHTML = bodyHtml;
-  document.getElementById('modal-save-btn').onclick = function(){
-    const btn = document.getElementById('modal-save-btn');
-    setBtnLoading(btn, true);
-    Promise.resolve(onSave()).finally(()=>{ setBtnLoading(btn, false); });
-  };
-  const ov = document.getElementById('modal-overlay');
-  ov.style.display='flex';
-  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ ov.classList.add('visible'); }); });
+  document.getElementById('modal-save-btn').onclick = onSave;
+  document.getElementById('modal-overlay').style.display='flex';
 }
-function fecharModal(){
-  const ov = document.getElementById('modal-overlay');
-  ov.classList.remove('visible');
-  setTimeout(()=>{ ov.style.display='none'; }, 200);
-}
+function fecharModal(){ document.getElementById('modal-overlay').style.display='none'; }
 
 // ══════════════════════════════════════════
 //  UTILS
@@ -1611,7 +1662,7 @@ function renderDash(){
   renderCalView();
   // Clientes no painel
   const list = document.getElementById('dash-clientes-list');
-  if(!cliAtivos.length){ list.innerHTML=emptyState("clientes","Nenhum cliente ativo","Todos os seus clientes estão inativos ou não há clientes cadastrados.","Ver todos","document.getElementById('fil-tipo-cli').value='';renderClientes()"); return; }
+  if(!cliAtivos.length){ list.innerHTML='<div class="empty">Nenhum cliente ativo</div>'; return; }
   list.innerHTML = cliAtivos.slice(0,6).map(c=>`
     <div class="cli-item" onclick="goPg('clientes')">
       <div class="cli-av">${initials(c.Nome)}</div>
@@ -1682,7 +1733,7 @@ function renderTarefas(){
   if(cli)  t=t.filter(x=>x.CliID===cli);
   t.sort((a,b)=>{ const o={Urgente:0,Alta:1,Normal:2}; return (o[a.Urgencia]??3)-(o[b.Urgencia]??3); });
   const el = document.getElementById('lt');
-  if(!t.length){ el.innerHTML='${emptyState("tarefas","Nenhuma tarefa encontrada","Crie uma tarefa ou ajuste os filtros aplicados.","+ Nova tarefa","abrirModalTarefa()")}}}'; return; }
+  if(!t.length){ el.innerHTML='<div class="empty"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Nenhuma tarefa</div>'; return; }
   el.innerHTML = `<div style="display:flex;flex-direction:column;gap:7px;">${t.map(x=>taskCardHtml(x)).join('')}</div>`;
 }
 
@@ -1729,7 +1780,7 @@ function renderCalendario(){
     const pa=a.Data.split('/'), pb=b.Data.split('/');
     return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
   });
-  if(!evs.length){ el.innerHTML='${emptyState("calendario","Nenhum evento cadastrado","Adicione datas críticas e compromissos jurídicos.","+ Nova data","abrirModalEvento()")}}}'; return; }
+  if(!evs.length){ el.innerHTML='<div class="empty">Nenhum evento</div>'; return; }
   el.innerHTML = evs.map(e=>{
     const p=e.Data.split('/');
     const urg=e.Urgencia==='Alta'||e.Urgencia==='Urgente';
