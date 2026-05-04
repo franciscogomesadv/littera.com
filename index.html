@@ -94,6 +94,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   display:flex;flex-direction:column;
   position:fixed;top:0;left:0;bottom:0;z-index:50;
   border-right:1px solid rgba(0,0,0,0.15);
+  overflow-y:auto;overflow-x:hidden;
 }
 
 /* Logo */
@@ -592,6 +593,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .kanban{grid-template-columns:repeat(3,1fr);overflow-x:auto;}
   .stats{grid-template-columns:repeat(2,1fr);}
   .dash-grid{grid-template-columns:1fr;}
+  #exp-cards{grid-template-columns:repeat(2,1fr)!important;}
 }
 
 @media(max-width:900px){
@@ -2830,8 +2832,8 @@ function renderExpediente(){
 
 </script>
 </body>
-</html>    <div class="pg" id="pg-expediente">
-      <div id="exp-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
+</html>    <div class="pg" id="pg-expediente" style="box-sizing:border-box;width:100%;overflow-x:hidden;">
+      <div id="exp-cards" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;width:100%;box-sizing:border-box"></div>
       <div class="dash-sec">
         <div class="sh">
           <span class="st">Pendências Críticas</span>
