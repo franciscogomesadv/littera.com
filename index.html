@@ -1452,10 +1452,10 @@ function renderDash(){
   document.getElementById('s3').textContent = pendentes.length;
   document.getElementById('s4').textContent = conclMes.length;
   document.getElementById('s2d').textContent = urgentes.length>0?urgentes.length+' requerem atenção':'Nenhuma urgente';
-  document.getElementById('honor-mes').textContent = mesAtual;
+  const hmOld=document.getElementById('honor-mes'); if(hmOld) hmOld.textContent = mesAtual;
   // Passivo evitado do mês
   const passivo = DB.tarefas.filter(t=>t.Status==='Concluido'&&t.Conclusao).reduce((s,t)=>s+parseFloat(t.Passivo||0),0);
-  document.getElementById('passivo-val').textContent = fmtBRL(passivo);
+  const pvOld=document.getElementById('passivo-val'); if(pvOld) pvOld.textContent = fmtBRL(passivo);
   // Badge tarefas
   const nb = document.getElementById('nav-badge-tarefas');
   if(urgentes.length>0){ nb.textContent=urgentes.length; nb.style.display=''; } else { nb.style.display='none'; }
