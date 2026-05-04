@@ -586,6 +586,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .content{padding:0;}
   .pg{display:block!important;}
 }
+@media(max-width:1400px){
+  :root{ --sidebar-w: 200px; }
+  .elaw-cards{grid-template-columns:repeat(2,1fr);}
+  .kanban{grid-template-columns:repeat(3,1fr);overflow-x:auto;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .dash-grid{grid-template-columns:1fr;}
+}
+
 @media(max-width:900px){
   .sidebar{width:56px;}
   .sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-label,.sidebar .nav-item span,.sidebar .user-name,.sidebar .user-oab,.sidebar .sync-btn span,.sidebar .nav-item.future::after{display:none;}
