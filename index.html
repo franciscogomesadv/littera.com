@@ -1301,6 +1301,23 @@ function mostrarApp(){
 // ══════════════════════════════════════════
 //  LOAD DATA
 // ══════════════════════════════════════════
+function normalizarData(s){
+  if(!s||typeof s!=='string') return '';
+  // Já está em DD/MM/AAAA
+  if(/^\d{2}\/\d{2}\/\d{4}/.test(s)) return s.substring(0,10);
+  // Formato do Google Sheets: "Thu Apr 24 2026 00:00:00 GMT-0300..."
+  try{
+    const d = new Date(s);
+    if(!isNaN(d)){
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      const yy=d.getFullYear();
+      return dd+'/'+mm+'/'+yy;
+    }
+  }catch(e){}
+  return s;
+}
+
 async function loadData(){
   showToast('Carregando dados…');
   try{
@@ -1308,6 +1325,13 @@ async function loadData(){
     const d = await r.json();
     if(d.ok){
       DB = d;
+      // Normalizar datas de todas as entidades
+      const camposTarefa = ['Vencimento','Criacao','Conclusao','DataEntrada'];
+      const camposCalend = ['Data'];
+      const camposCliente = ['DataEntrada'];
+      DB.tarefas.forEach(t => camposTarefa.forEach(f => { if(t[f]) t[f]=normalizarData(t[f]); }));
+      DB.calendario.forEach(e => camposCalend.forEach(f => { if(e[f]) e[f]=normalizarData(e[f]); }));
+      DB.clientes.forEach(cl => camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); }));
       renderAll();
       showToast('Dados atualizados ✓');
     }
@@ -1739,7 +1763,7 @@ function abrirModalTarefa(id){
     </div>
     <div class="form-row">
       <div class="doc-field"><label>Urgência</label><select id="m-urg"><option ${t?.Urgencia==='Normal'?'selected':''}>Normal</option><option ${t?.Urgencia==='Alta'?'selected':''}>Alta</option><option ${t?.Urgencia==='Urgente'?'selected':''}>Urgente</option></select></div>
-      <div class="doc-field"><label>Vencimento</label><input id="m-venc" type="text" placeholder="DD/MM/AAAA" value="${fmt(t?.Vencimento)}"></div>
+      <div class="doc-field"><label>Vencimento</label><input id="m-venc" type="date" value="${t?.Vencimento?t.Vencimento.split('/').reverse().join('-'):''}"></div>
     </div>
     <div class="form-row">
       <div class="doc-field"><label>Hor&#225;rio</label><input id="m-hora" type="time" value="${t?.Hora||'09:00'}"></div>
@@ -1763,7 +1787,7 @@ async function salvarTarefa(id){
     cliId, cliNome,
     area: document.getElementById('m-area').value,
     urgencia: document.getElementById('m-urg').value,
-    venc: document.getElementById('m-venc').value,
+    venc: (()=>{const v=document.getElementById('m-venc').value;if(!v)return '';const p=v.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;})(),
     hora: document.getElementById('m-hora')?.value||'09:00',
     dur: document.getElementById('m-dur')?.value||'allday',
     resp: document.getElementById('m-resp').value,
@@ -1851,7 +1875,7 @@ function abrirModalEvento(id){
       <div class="doc-field"><label>Tipo</label><select id="m-tipo"><option>Audiência</option><option>Prazo</option><option>Reunião</option><option>Protocolo</option><option>Outro</option></select></div>
     </div>
     <div class="form-row">
-      <div class="doc-field"><label>Data</label><input id="m-data" type="text" value="${fmt(e?.Data)}" placeholder="DD/MM/AAAA"></div>
+      <div class="doc-field"><label>Data</label><input id="m-data" type="date" value="${e?.Data?e.Data.split('/').reverse().join('-'):''}"></div>
       <div class="doc-field"><label>Urgência</label><select id="m-urg"><option>Normal</option><option>Alta</option><option>Urgente</option></select></div>
     </div>
     <div class="doc-field"><label>Observações</label><textarea id="m-obs" rows="2">${fmt(e?.Obs)}</textarea></div>
@@ -1866,7 +1890,7 @@ async function salvarEvento(id){
     desc:document.getElementById('m-desc').value,
     cliId, cliNome,
     tipo:document.getElementById('m-tipo').value,
-    data:document.getElementById('m-data').value,
+    data:(()=>{const v=document.getElementById('m-data').value;if(!v)return '';const p=v.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;})(),
     urgencia:document.getElementById('m-urg').value,
     obs:document.getElementById('m-obs').value,
     resp:usuarioAtual,
@@ -2067,6 +2091,18 @@ function renderRelatorio(){
     </div>
     <div class="rel-footer">
       <div class="rel-assinatura">Francisco Gomes · OAB/SP 363.517<br><span style="font-size:10px;color:var(--ink3);">Rua Antonio Maniglia, 1090 · Franca/SP</span></div>
+      ${(()=>{
+        carregarProcessosLocais();
+        const procs=(DB.processos||[]).filter(p=>p.status==='Ativo'&&p.cliente===cli.Nome);
+        if(!procs.length) return '';
+        return '<div class="rel-section"><div class="rel-section-title">Processos Ativos</div>'+
+          procs.map(p=>'<div class="rel-item"><div class="rel-item-dot" style="background:var(--blu)"></div>'+
+            '<div class="rel-item-body"><strong>'+(p.numero||'—')+'</strong> — '+(p.tipoAcao||p.area||'—')+
+            '<div class="rel-item-sub">'+(p.tribunal||'')+(p.grau?' · '+p.grau:'')+' · Vara: '+(p.vara||'—')+(p.valorCausa?' · R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'')+
+            '</div>'+(p.partes?'<div class="rel-item-sub">'+p.partes+'</div>':'')+
+            '</div></div>'
+          ).join('')+'</div>';
+      })()}
       <button class="btn sm" onclick="window.print()">🖨 Imprimir</button>
     </div>
   </div>`;
@@ -2513,78 +2549,134 @@ function renderProcessos(){
   const busca=(document.getElementById('proc-busca')?.value||'').toLowerCase();
   const sf=document.getElementById('proc-status-fil')?.value||'';
   let lista=[...DB.processos];
-  if(busca) lista=lista.filter(p=>(p.numero||'').toLowerCase().includes(busca)||(p.partes||'').toLowerCase().includes(busca));
-  if(sf) lista=lista.filter(p=>p.status===sf);
+  if(busca) lista=lista.filter(p=>(p.numero||'').toLowerCase().includes(busca)||(p.partes||'').toLowerCase().includes(busca)||(p.cliente||'').toLowerCase().includes(busca));
+  if(sf) lista=lista.filter(p=>sf==='Ativo'?p.status==='Ativo':(p.status||'').includes('Encerrado'));
   const se=document.getElementById('proc-stats');
   if(se) se.innerHTML=`
     <div class="stat-card c1"><div class="stat-num">${lista.length}</div><div class="stat-lbl">Total</div></div>
     <div class="stat-card c4"><div class="stat-num">${lista.filter(p=>p.status==='Ativo').length}</div><div class="stat-lbl">Ativos</div></div>
-    <div class="stat-card c3"><div class="stat-num">${lista.filter(p=>{if(!p.ultimaMov)return true;return(Date.now()-new Date(p.ultimaMov).getTime())>60*86400000;}).length}</div><div class="stat-lbl">Sem mov. 60+</div></div>
-    <div class="stat-card c2"><div class="stat-num">${lista.filter(p=>p.status==='Encerrado').length}</div><div class="stat-lbl">Encerrados</div></div>`;
+    <div class="stat-card c3"><div class="stat-num">${lista.filter(p=>p.status&&p.status.includes('Encerrado')).length}</div><div class="stat-lbl">Encerrados</div></div>
+    <div class="stat-card c2"><div class="stat-num">${lista.filter(p=>{if(!p.ultimaMov)return true;return(Date.now()-new Date(p.ultimaMov).getTime())>60*86400000;}).length}</div><div class="stat-lbl">Sem mov. 60+</div></div>`;
   const el=document.getElementById('proc-lista'); if(!el) return;
   if(!lista.length){
-    el.innerHTML=`<div class="empty">
-      <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="empty-title">Nenhum processo cadastrado</div>
-      <div class="empty-sub">Cadastre o número CNJ. Use ⟳ para buscar movimentações no DataJud.</div>
-      <button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button>
-    </div>`; return;
+    el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="empty-title">Nenhum processo cadastrado</div><div class="empty-sub">Cadastre o número CNJ.</div><button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button></div>';
+    return;
   }
-  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
-    <thead><tr style="border-bottom:2px solid var(--br2)">
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Nº Processo</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tribunal</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Partes</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Cliente</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Última Mov.</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Status</th>
-      <th></th>
-    </tr></thead>
-    <tbody>${lista.map(p=>`<tr style="border-bottom:1px solid var(--br)">
-      <td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--blu)">${p.numero||'—'}</td>
-      <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.tribunal||'—'}</td>
-      <td style="padding:9px 12px;font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.partes||'—').replace(/</g,'&lt;')}</td>
-      <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td>
-      <td style="padding:9px 12px;font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace">${p.ultimaMov?new Date(p.ultimaMov).toLocaleDateString('pt-BR'):'—'}</td>
-      <td style="padding:9px 12px"><span class="tag ${p.status==='Ativo'?'ok':'gy'}">${p.status||'Ativo'}</span></td>
-      <td style="padding:9px 12px;white-space:nowrap">
-        <button class="icon-btn" onclick="consultarDataJud('${(p.numero||'').replace(/'/g,"\\'")}','${p.id||''}')" title="Consultar DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-        <button class="icon-btn danger" onclick="delProcesso('${p.id||''}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
-      </td>
-    </tr>`).join('')}</tbody>
-  </table></div>`;
+  const tagSt=s=>{if(s==='Ativo')return 'ok';if(s&&s.includes('Encerrado'))return 'gy';if(s==='Suspenso')return 'alt';return 'nor';};
+  el.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:2px solid var(--br2)"><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Nº Processo</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tipo/Área</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Vara</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Partes</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Cliente</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Valor</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Status</th><th></th></tr></thead><tbody>'+
+  lista.map(p=>'<tr style="border-bottom:1px solid var(--br);cursor:pointer" onclick="abrirFichaProcesso(''+p.id+'')">' +
+    '<td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--blu)">'+(p.numero||'—')+'<br><span style="color:var(--ink3);font-size:10px">'+(p.tribunal||'')+''+(p.grau?' · '+p.grau:'')+'</span></td>'+
+    '<td style="padding:9px 12px;font-size:11px">'+(p.tipoAcao||p.area||'—')+'<br><span style="color:var(--ink3);font-size:10px">'+(p.area||'')+'</span></td>'+
+    '<td style="padding:9px 12px;font-size:11px;color:var(--ink3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.vara||'—')+'</td>'+
+    '<td style="padding:9px 12px;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((p.partes||'—').replace(/</g,'&lt;'))+'</td>'+
+    '<td style="padding:9px 12px;font-size:11px;color:var(--ink3)">'+(p.cliente||'—')+'</td>'+
+    '<td style="padding:9px 12px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink3)">'+(p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—')+'</td>'+
+    '<td style="padding:9px 12px"><span class="tag '+tagSt(p.status)+'">'+(p.status||'Ativo')+'</span></td>'+
+    '<td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">'+
+      '<button class="icon-btn" onclick="abrirModalProcesso(''+p.id+'')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
+      '<button class="icon-btn" onclick="consultarDataJud(''+p.numero.replace(/'/g,"\'")+"','"+p.id+'')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>'+
+      '<button class="icon-btn danger" onclick="delProcesso(''+p.id+'')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>'+
+    '</td></tr>'
+  ).join('')+'</tbody></table></div>';
 }
 
-function abrirModalProcesso(){
-  const co=DB.clientes.map(cl=>`<option value="${cl.Nome.replace(/"/g,'&quot;')}">${cl.Nome}</option>`).join('');
-  abrirModal('Cadastrar Processo',`
-    <div class="doc-field"><label>Número CNJ*</label><input id="mp-num" type="text" placeholder="0000000-00.0000.0.00.0000"></div>
+function abrirFichaProcesso(id){
+  carregarProcessosLocais();
+  const p=DB.processos.find(x=>x.id===id); if(!p) return;
+  const lin=(lbl,val)=>val?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--br)"><div style="font-size:11px;color:var(--ink3);min-width:130px;flex-shrink:0">'+lbl+'</div><div style="font-size:12px;font-weight:500">'+val+'</div></div>':'';
+  abrirModal('Ficha do Processo',
+    '<div style="margin-bottom:12px"><div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--blu);font-weight:700">'+(p.numero||'—')+'</div>'+
+    '<div style="font-size:12px;color:var(--ink3);margin-top:2px">'+(p.tribunal||'')+''+(p.grau?' · '+p.grau:'')+'</div></div>'+
+    lin('Tipo de Ação',p.tipoAcao)+lin('Área',p.area)+lin('Vara / Juízo',p.vara)+
+    lin('Partes',(p.partes||'').replace(/</g,'&lt;'))+lin('Cliente',p.cliente)+
+    lin('Valor da Causa',p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'')+
+    lin('Data de Autuação',p.autuacao)+lin('Status',p.status)+
+    lin('Última Movimentação',p.ultimaMov?new Date(p.ultimaMov).toLocaleDateString('pt-BR'):'')+
+    lin('Cadastrado em',p.cadastradoEm?new Date(p.cadastradoEm).toLocaleDateString('pt-BR'):'')+
+    (p.obs?'<div style="margin-top:10px;padding:10px;background:var(--sf2);border-radius:8px;font-size:12px">'+p.obs+'</div>':''),
+  null);
+  document.getElementById('modal-footer').innerHTML='<button class="btn" onclick="fecharModal()">Fechar</button><button class="btn-save" onclick="fecharModal();abrirModalProcesso(''+p.id+'')">Editar</button>';
+}
+
+
+function abrirModalProcesso(id){
+  carregarProcessosLocais();
+  const p = id ? DB.processos.find(x=>x.id===id) : null;
+  const titulo = p ? 'Editar Processo' : 'Cadastrar Processo';
+  const co=DB.clientes.map(cl=>`<option value="${cl.Nome.replace(/"/g,'&quot;')}" ${p&&p.cliente===cl.Nome?'selected':''}>${cl.Nome}</option>`).join('');
+  const selOpt=(field,opts)=>opts.map(o=>`<option ${p&&p[field]===o?'selected':''}>${o}</option>`).join('');
+  abrirModal(titulo,`
+    <div class="doc-field"><label>Número CNJ*</label><input id="mp-num" type="text" placeholder="0000000-00.0000.0.00.0000" value="${p?p.numero:''}"></div>
     <div class="form-row">
-      <div class="doc-field"><label>Tribunal</label><select id="mp-trib"><option>TJ-SP</option><option>TJ-MG</option><option>TJ-RJ</option><option>TRT-SP</option><option>TRF-3</option><option>STJ</option><option>STF</option><option>Outros</option></select></div>
-      <div class="doc-field"><label>Área</label><select id="mp-area"><option>Cível</option><option>Trabalhista</option><option>Tributário</option><option>Consumidor</option><option>Criminal</option><option>LGPD</option><option>Outros</option></select></div>
+      <div class="doc-field"><label>Tribunal</label><select id="mp-trib">${selOpt('tribunal',['TJ-SP','TJ-MG','TJ-RJ','TJ-RS','TRT-SP','TRT-MG','TRF-3','STJ','STF','Outros'])}</select></div>
+      <div class="doc-field"><label>Grau</label><select id="mp-grau"><option ${p&&p.grau==='1º Grau'?'selected':''}>1º Grau</option><option ${p&&p.grau==='2º Grau'?'selected':''}>2º Grau</option><option ${p&&p.grau==='Superior'?'selected':''}>Superior</option></select></div>
     </div>
-    <div class="doc-field"><label>Cliente vinculado</label><select id="mp-cli"><option value="">— Sem vínculo —</option>${co}</select></div>
-    <div class="doc-field"><label>Partes (Autor vs Réu)</label><input id="mp-partes" placeholder="Ex: João Silva x Empresa ABC"></div>
     <div class="form-row">
-      <div class="doc-field"><label>Status</label><select id="mp-status"><option value="Ativo">Ativo</option><option value="Encerrado">Encerrado</option></select></div>
-      <div class="doc-field"><label>Observações</label><input id="mp-obs"></div>
+      <div class="doc-field"><label>Área</label><select id="mp-area">${selOpt('area',['Cível','Trabalhista','Tributário','Consumidor','Criminal','Família','LGPD','Outros'])}</select></div>
+      <div class="doc-field"><label>Tipo de Ação</label><input id="mp-tipo" type="text" placeholder="Ex: Ação de Cobrança" value="${p?p.tipoAcao||'':''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Vara / Juízo</label><input id="mp-vara" type="text" placeholder="Ex: 2ª Vara Cível" value="${p?p.vara||'':''}"></div>
+      <div class="doc-field"><label>Data de Autuação</label><input id="mp-autuacao" type="date" value="${p&&p.autuacao?p.autuacao.split('/').reverse().join('-'):''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Valor da Causa (R$)</label><input id="mp-valor" type="number" step="0.01" placeholder="0,00" value="${p?p.valorCausa||'':''}"></div>
+      <div class="doc-field"><label>Cliente vinculado</label><select id="mp-cli"><option value="">— Sem vínculo —</option>${co}</select></div>
+    </div>
+    <div class="doc-field"><label>Partes (Autor vs Réu)</label><input id="mp-partes" placeholder="Ex: João Silva x Empresa ABC" value="${p?p.partes||'':''}"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>Status</label><select id="mp-status">
+        <option value="Ativo" ${!p||p.status==='Ativo'?'selected':''}>Ativo</option>
+        <option value="Encerrado com Mérito" ${p&&p.status==='Encerrado com Mérito'?'selected':''}>Encerrado com Mérito</option>
+        <option value="Encerrado sem Mérito" ${p&&p.status==='Encerrado sem Mérito'?'selected':''}>Encerrado sem Mérito</option>
+        <option value="Suspenso" ${p&&p.status==='Suspenso'?'selected':''}>Suspenso</option>
+      </select></div>
+      <div class="doc-field"><label>Observações</label><input id="mp-obs" value="${p?p.obs||'':''}"></div>
     </div>`,
   () => {
     const num=document.getElementById('mp-num').value.trim();
     if(!num){ showToast('Informe o número do processo'); return; }
     carregarProcessosLocais();
-    DB.processos.push({
-      id:uid(), numero:num,
-      tribunal:document.getElementById('mp-trib').value,
-      area:document.getElementById('mp-area').value,
-      cliente:document.getElementById('mp-cli').value,
-      partes:document.getElementById('mp-partes').value,
-      status:document.getElementById('mp-status').value,
-      obs:document.getElementById('mp-obs').value,
-      cadastradoEm:new Date().toISOString(), ultimaMov:null
-    });
+    // Validar duplicado (só no cadastro novo)
+    if(!id && DB.processos.find(x=>x.numero===num)){
+      showToast('Processo já cadastrado!'); return;
+    }
+    const autuacaoRaw=document.getElementById('mp-autuacao').value;
+    const autuacao=autuacaoRaw?(()=>{const p=autuacaoRaw.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:autuacaoRaw;})():'';
+    if(id){
+      const idx=DB.processos.findIndex(x=>x.id===id);
+      if(idx>=0) Object.assign(DB.processos[idx],{
+        numero:num, tribunal:document.getElementById('mp-trib').value,
+        grau:document.getElementById('mp-grau').value,
+        area:document.getElementById('mp-area').value,
+        tipoAcao:document.getElementById('mp-tipo').value,
+        vara:document.getElementById('mp-vara').value,
+        autuacao, valorCausa:document.getElementById('mp-valor').value,
+        cliente:document.getElementById('mp-cli').value,
+        partes:document.getElementById('mp-partes').value,
+        status:document.getElementById('mp-status').value,
+        obs:document.getElementById('mp-obs').value,
+      });
+      showToast('Processo atualizado!');
+    } else {
+      DB.processos.push({
+        id:uid(), numero:num,
+        tribunal:document.getElementById('mp-trib').value,
+        grau:document.getElementById('mp-grau').value,
+        area:document.getElementById('mp-area').value,
+        tipoAcao:document.getElementById('mp-tipo').value,
+        vara:document.getElementById('mp-vara').value,
+        autuacao, valorCausa:document.getElementById('mp-valor').value,
+        cliente:document.getElementById('mp-cli').value,
+        partes:document.getElementById('mp-partes').value,
+        status:document.getElementById('mp-status').value,
+        obs:document.getElementById('mp-obs').value,
+        cadastradoEm:new Date().toISOString(), ultimaMov:null
+      });
+      showToast('Processo cadastrado!');
+    }
     localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
-    fecharModal(); renderProcessos(); showToast('Processo cadastrado!');
+    fecharModal(); renderProcessos();
   });
 }
 
@@ -2679,7 +2771,7 @@ function renderPublicacoes(){
       <td style="padding:8px 12px;font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.conteudo||'—').replace(/</g,'&lt;')}</td>
       <td style="padding:8px 12px;font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td>
       <td style="padding:8px 12px"><span class="tag ${p.status==='nao_tratada'?'urg':'ok'}">${p.status==='nao_tratada'?'Não tratada':'Tratada'}</span></td>
-      <td style="padding:8px 12px"><button class="icon-btn" onclick="marcarPubTratada('${p.id}')" title="Marcar tratada"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button></td>
+      <td style="padding:8px 12px"><button class="icon-btn" onclick="marcarPubTratada('${p.id}')" title="Marcar tratada"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></button><button class="icon-btn" onclick="gerarTarefaDePub('${p.id}')" title="Gerar tarefa"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
 }
@@ -2688,6 +2780,33 @@ function marcarPubTratada(id){
   carregarPublicacoesLocais();
   const p=DB.publicacoes.find(x=>x.id===id);
   if(p){ p.status='tratada'; localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes)); renderPublicacoes(); }
+}
+
+function gerarTarefaDePub(id){
+  carregarPublicacoesLocais();
+  const p=DB.publicacoes.find(x=>x.id===id); if(!p) return;
+  // Pré-preencher modal de tarefa com dados da publicação
+  const cliOpts=DB.clientes.filter(cl=>cl.Status==='Ativo').map(cl=>`<option value="${cl.ID}" data-nome="${cl.Nome.replace(/"/g,'&quot;')}" ${p.cliente&&cl.Nome===p.cliente?'selected':''}>${cl.Nome}</option>`).join('');
+  const usOpts=DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('');
+  abrirModal('Nova Tarefa — a partir de publicação',`
+    <div style="background:var(--gold-dim);border:1px solid var(--gold-border,rgba(196,146,42,.3));border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--jade)">
+      Publicação: <strong>${p.numero||'—'}</strong> · ${p.data||'—'} · ${p.conteudo||''}
+    </div>
+    <div class="doc-field"><label>Título*</label><input id="m-titulo" value="Analisar publicação — ${p.numero||''}" placeholder="Descrição da tarefa"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>Cliente</label><select id="m-cli"><option value="">Geral</option>${cliOpts}</select></div>
+      <div class="doc-field"><label>Área</label><select id="m-area"><option>Processual</option><option>Contratos</option><option>Trabalhista</option><option>Tributário</option><option>Geral</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Urgência</label><select id="m-urg"><option>Normal</option><option>Alta</option><option selected>Urgente</option></select></div>
+      <div class="doc-field"><label>Vencimento</label><input id="m-venc" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Horário</label><input id="m-hora" type="time" value="09:00"></div>
+      <div class="doc-field"><label>Responsável</label><select id="m-resp"><option>Francisco</option>${usOpts}</select></div>
+    </div>
+    <div class="doc-field"><label>Observações</label><textarea id="m-obs" rows="2">${p.conteudo||''}</textarea></div>`,
+  ()=>salvarTarefa(null));
 }
 
 async function sincPublicacoes(){
