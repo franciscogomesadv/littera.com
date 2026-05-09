@@ -1332,6 +1332,18 @@ async function loadData(){
       DB.tarefas.forEach(t => camposTarefa.forEach(f => { if(t[f]) t[f]=normalizarData(t[f]); }));
       DB.calendario.forEach(e => camposCalend.forEach(f => { if(e[f]) e[f]=normalizarData(e[f]); }));
       DB.clientes.forEach(cl => camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); }));
+      // Processos: mesclar API + localStorage (localStorage tem campos extras como grau, vara, etc.)
+      const localProcs = JSON.parse(localStorage.getItem('littera_processos')||'[]');
+      if(DB.processos&&DB.processos.length){
+        // API tem processos — mesclar campos extras do localStorage
+        DB.processos = DB.processos.map(p=>{
+          const loc=localProcs.find(l=>l.numero===p.Numero||l.id===p.ID);
+          return loc ? {...loc, id:p.ID||loc.id, numero:p.Numero||loc.numero, tribunal:p.Tribunal||loc.tribunal, grau:p.Grau||loc.grau, area:p.Area||loc.area, tipoAcao:p.TipoAcao||loc.tipoAcao, vara:p.Vara||loc.vara, autuacao:p.Autuacao||loc.autuacao, valorCausa:p.ValorCausa||loc.valorCausa, cliente:p.Cliente||loc.cliente, partes:p.Partes||loc.partes, status:p.Status||loc.status, obs:p.Obs||loc.obs} : {id:p.ID, numero:p.Numero, tribunal:p.Tribunal, grau:p.Grau, area:p.Area, tipoAcao:p.TipoAcao, vara:p.Vara, autuacao:p.Autuacao, valorCausa:p.ValorCausa, cliente:p.Cliente, partes:p.Partes, status:p.Status, obs:p.Obs};
+        });
+        localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
+      } else if(localProcs.length) {
+        DB.processos = localProcs;
+      }
       renderAll();
       showToast('Dados atualizados ✓');
     }
@@ -2542,7 +2554,7 @@ function delHonorario(id){
 }
 
 // ── Processos ──
-function carregarProcessosLocais(){ const s=localStorage.getItem('littera_processos'); if(s) try{DB.processos=JSON.parse(s);}catch(e){} if(!DB.processos) DB.processos=[]; }
+function carregarProcessosLocais(){ if(!DB.processos||!DB.processos.length){ const s=localStorage.getItem('littera_processos'); if(s) try{const local=JSON.parse(s);if(local.length&&!DB.processos.length)DB.processos=local;}catch(e){} } if(!DB.processos) DB.processos=[]; }
 
 function renderProcessos(){
   carregarProcessosLocais();
@@ -2574,7 +2586,7 @@ function renderProcessos(){
     '<td style="padding:9px 12px"><span class="tag '+tagSt(p.status)+'">'+(p.status||'Ativo')+'</span></td>'+
     '<td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">'+
       '<button class="icon-btn" onclick="abrirModalProcesso(''+p.id+'')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
-      '<button class="icon-btn" onclick="consultarDataJud(''+p.numero.replace(/'/g,"\'")+"','"+p.id+'')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>'+
+      '<button class="icon-btn" onclick="consultarDataJudById(\'' + p.id + '\')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>'+
       '<button class="icon-btn danger" onclick="delProcesso(''+p.id+'')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>'+
     '</td></tr>'
   ).join('')+'</tbody></table></div>';
@@ -2676,6 +2688,15 @@ function abrirModalProcesso(id){
       showToast('Processo cadastrado!');
     }
     localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
+    // Sincronizar com API (salva em todos os dispositivos)
+    const _p = id ? DB.processos.find(x=>x.id===id) : DB.processos[DB.processos.length-1];
+    if(_p){
+      const _act = id ? 'updateProcesso' : 'saveProcesso';
+      fetch(API,{method:'POST',body:JSON.stringify({action:_act,..._p})})
+        .then(r=>r.json())
+        .then(d=>showToast(d.ok?(id?'Processo atualizado!':'Processo salvo!'):'Salvo localmente'))
+        .catch(()=>showToast('Salvo localmente'));
+    }
     fecharModal(); renderProcessos();
   });
 }
@@ -2686,6 +2707,7 @@ function delProcesso(id){
   DB.processos=DB.processos.filter(p=>p.id!==id);
   localStorage.setItem('littera_processos',JSON.stringify(DB.processos));
   renderProcessos();
+  fetch(API,{method:'POST',body:JSON.stringify({action:'delProcesso',id})}).catch(()=>{});
 }
 
 async function sincTodosProcessos(){
@@ -2694,6 +2716,12 @@ async function sincTodosProcessos(){
   showToast('Atualizando '+DB.processos.length+' processo(s)…');
   for(const p of DB.processos){ await consultarDataJud(p.numero,p.id); await new Promise(r=>setTimeout(r,600)); }
   showToast('Processos atualizados!');
+}
+
+function consultarDataJudById(id){
+  carregarProcessosLocais();
+  const p = DB.processos.find(x=>x.id===id);
+  if(p) consultarDataJud(p.numero||'', p.id||'');
 }
 
 async function consultarDataJud(numero, procId){
