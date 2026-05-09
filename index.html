@@ -2571,43 +2571,73 @@ function renderProcessos(){
     <div class="stat-card c2"><div class="stat-num">${lista.filter(p=>{if(!p.ultimaMov)return true;return(Date.now()-new Date(p.ultimaMov).getTime())>60*86400000;}).length}</div><div class="stat-lbl">Sem mov. 60+</div></div>`;
   const el=document.getElementById('proc-lista'); if(!el) return;
   if(!lista.length){
-    el.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div class="empty-title">Nenhum processo cadastrado</div><div class="empty-sub">Cadastre o número CNJ.</div><button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button></div>';
+    el.innerHTML=`<div class="empty">
+      <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="empty-title">Nenhum processo cadastrado</div>
+      <div class="empty-sub">Cadastre o número CNJ.</div>
+      <button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button>
+    </div>`;
     return;
   }
   const tagSt=s=>{if(s==='Ativo')return 'ok';if(s&&s.includes('Encerrado'))return 'gy';if(s==='Suspenso')return 'alt';return 'nor';};
-  el.innerHTML='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:2px solid var(--br2)"><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Nº Processo</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tipo/Área</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Vara</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Partes</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Cliente</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Valor</th><th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Status</th><th></th></tr></thead><tbody>'+
-  lista.map(p=>'<tr style="border-bottom:1px solid var(--br);cursor:pointer" onclick="abrirFichaProcesso(''+p.id+'')">' +
-    '<td style="padding:9px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--blu)">'+(p.numero||'—')+'<br><span style="color:var(--ink3);font-size:10px">'+(p.tribunal||'')+''+(p.grau?' · '+p.grau:'')+'</span></td>'+
-    '<td style="padding:9px 12px;font-size:11px">'+(p.tipoAcao||p.area||'—')+'<br><span style="color:var(--ink3);font-size:10px">'+(p.area||'')+'</span></td>'+
-    '<td style="padding:9px 12px;font-size:11px;color:var(--ink3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(p.vara||'—')+'</td>'+
-    '<td style="padding:9px 12px;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((p.partes||'—').replace(/</g,'&lt;'))+'</td>'+
-    '<td style="padding:9px 12px;font-size:11px;color:var(--ink3)">'+(p.cliente||'—')+'</td>'+
-    '<td style="padding:9px 12px;font-size:11px;font-family:'DM Mono',monospace;color:var(--ink3)">'+(p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—')+'</td>'+
-    '<td style="padding:9px 12px"><span class="tag '+tagSt(p.status)+'">'+(p.status||'Ativo')+'</span></td>'+
-    '<td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">'+
-      '<button class="icon-btn" onclick="abrirModalProcesso(''+p.id+'')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'+
-      '<button class="icon-btn" onclick="consultarDataJudById(\'' + p.id + '\')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>'+
-      '<button class="icon-btn danger" onclick="delProcesso(''+p.id+'')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>'+
-    '</td></tr>'
-  ).join('')+'</tbody></table></div>';
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead><tr style="border-bottom:2px solid var(--br2)">
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Nº Processo</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tipo/Área</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Vara</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Partes</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Cliente</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Valor</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Status</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${lista.map(p=>`
+      <tr style="border-bottom:1px solid var(--br);cursor:pointer" onclick="abrirFichaProcesso('${p.id||''}')">
+        <td style="padding:9px 12px;font-size:11px;color:var(--blu)"><span style="font-family:monospace">${p.numero||'—'}</span><br><span style="color:var(--ink3);font-size:10px">${p.tribunal||''} ${p.grau?'· '+p.grau:''}</span></td>
+        <td style="padding:9px 12px;font-size:11px">${p.tipoAcao||p.area||'—'}<br><span style="color:var(--ink3);font-size:10px">${p.area||''}</span></td>
+        <td style="padding:9px 12px;font-size:11px;color:var(--ink3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.vara||'—'}</td>
+        <td style="padding:9px 12px;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.partes||'—').replace(/</g,'&lt;')}</td>
+        <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td>
+        <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td style="padding:9px 12px"><span class="tag ${tagSt(p.status)}">${p.status||'Ativo'}</span></td>
+        <td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="abrirModalProcesso('${p.id||''}')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+          <button class="icon-btn" onclick="consultarDataJudById('${p.id||''}')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+          <button class="icon-btn danger" onclick="delProcesso('${p.id||''}')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
 }
+
 
 function abrirFichaProcesso(id){
   carregarProcessosLocais();
   const p=DB.processos.find(x=>x.id===id); if(!p) return;
-  const lin=(lbl,val)=>val?'<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--br)"><div style="font-size:11px;color:var(--ink3);min-width:130px;flex-shrink:0">'+lbl+'</div><div style="font-size:12px;font-weight:500">'+val+'</div></div>':'';
-  abrirModal('Ficha do Processo',
-    '<div style="margin-bottom:12px"><div style="font-family:'DM Mono',monospace;font-size:14px;color:var(--blu);font-weight:700">'+(p.numero||'—')+'</div>'+
-    '<div style="font-size:12px;color:var(--ink3);margin-top:2px">'+(p.tribunal||'')+''+(p.grau?' · '+p.grau:'')+'</div></div>'+
-    lin('Tipo de Ação',p.tipoAcao)+lin('Área',p.area)+lin('Vara / Juízo',p.vara)+
-    lin('Partes',(p.partes||'').replace(/</g,'&lt;'))+lin('Cliente',p.cliente)+
-    lin('Valor da Causa',p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'')+
-    lin('Data de Autuação',p.autuacao)+lin('Status',p.status)+
-    lin('Última Movimentação',p.ultimaMov?new Date(p.ultimaMov).toLocaleDateString('pt-BR'):'')+
-    lin('Cadastrado em',p.cadastradoEm?new Date(p.cadastradoEm).toLocaleDateString('pt-BR'):'')+
-    (p.obs?'<div style="margin-top:10px;padding:10px;background:var(--sf2);border-radius:8px;font-size:12px">'+p.obs+'</div>':''),
-  null);
-  document.getElementById('modal-footer').innerHTML='<button class="btn" onclick="fecharModal()">Fechar</button><button class="btn-save" onclick="fecharModal();abrirModalProcesso(''+p.id+'')">Editar</button>';
+  const lin=(lbl,val)=>val?`<div style="display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--br)">
+    <div style="font-size:11px;color:var(--ink3);min-width:130px;flex-shrink:0">${lbl}</div>
+    <div style="font-size:12px;font-weight:500">${val}</div>
+  </div>`:'';
+  abrirModal('Ficha do Processo',`
+    <div style="margin-bottom:12px">
+      <div style="font-size:14px;color:var(--blu);font-weight:700">${p.numero||'—'}</div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px">${p.tribunal||''} ${p.grau?'· '+p.grau:''}</div>
+    </div>
+    ${lin('Tipo de Ação',p.tipoAcao)}
+    ${lin('Área',p.area)}
+    ${lin('Vara / Juízo',p.vara)}
+    ${lin('Partes',(p.partes||'').replace(/</g,'&lt;'))}
+    ${lin('Cliente',p.cliente)}
+    ${lin('Valor da Causa',p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'')}
+    ${lin('Data de Autuação',p.autuacao)}
+    ${lin('Status',p.status)}
+    ${lin('Última Movimentação',p.ultimaMov?new Date(p.ultimaMov).toLocaleDateString('pt-BR'):'')}
+    ${lin('Cadastrado em',p.cadastradoEm?new Date(p.cadastradoEm).toLocaleDateString('pt-BR'):'')}
+    ${p.obs?`<div style="margin-top:10px;padding:10px;background:var(--sf2);border-radius:8px;font-size:12px">${p.obs}</div>`:''}
+  `,null);
+  document.getElementById('modal-footer').innerHTML=`
+    <button class="btn" onclick="fecharModal()">Fechar</button>
+    <button class="btn-save" onclick="fecharModal();abrirModalProcesso('${p.id}')">Editar</button>
+  `;
 }
 
 
