@@ -593,7 +593,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .kanban{grid-template-columns:repeat(3,1fr);overflow-x:auto;}
   .stats{grid-template-columns:repeat(2,1fr);}
   .dash-grid{grid-template-columns:1fr;}
-  #exp-cards{grid-template-columns:repeat(2,1fr)!important;}
+  #exp-cards{grid-template-columns:repeat(2,1fr);}
 }
 
 @media(max-width:900px){
@@ -927,6 +927,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <!-- ══ TAREFAS ══ -->
+    <div class="pg" id="pg-expediente">
+      <div id="exp-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px"></div>
+      <div class="dash-sec">
+        <div class="sh">
+          <span class="st">Pendências Críticas</span>
+          <div class="sh-actions">
+            <button class="btn sm" onclick="renderExpediente()">&#10227; Atualizar</button>
+          </div>
+        </div>
+        <div id="exp-lista" style="padding:4px 0"></div>
+      </div>
+    </div>
+
     <div class="pg" id="pg-tarefas">
       <div class="filter-bar">
         <button class="filter-btn on" onclick="filtrar('todas',this)">Todas</button>
@@ -3009,17 +3022,9 @@ function renderExpediente(){
 
 </script>
 </body>
-</html>    <div class="pg" id="pg-expediente" style="box-sizing:border-box;width:100%;overflow-x:hidden;">
-      <div id="exp-cards" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px;width:100%;box-sizing:border-box"></div>
-      <div class="dash-sec">
-        <div class="sh">
-          <span class="st">Pendências Críticas</span>
-          <div class="sh-actions">
-            <button class="btn sm" onclick="loadData()">&#10227; Atualizar</button>
-          </div>
-        </div>
-        <div id="exp-lista" style="padding:4px 0"></div>
-      </div>
-    </div>
+</html>
+
+
+
 
 
