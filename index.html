@@ -1014,22 +1014,45 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <!-- ══ DOCUMENTOS ══ -->
     <div class="pg" id="pg-documentos">
 
-      <!-- Seletor de tipo -->
-      <div class="doc-types" id="doc-types-bar" style="margin-bottom:14px;">
-        <div class="doc-type-card selected" id="dt-assessoria" onclick="selectDoc('assessoria')">
-          <div class="doc-icon">⚖️</div><div class="doc-name">Assessoria</div><div class="doc-desc">Assessoria jurídica continuada</div>
+      <!-- Categorias de documentos -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="filter-btn on" id="cat-comercial" onclick="selecionarCategoria('comercial',this)">Comercial</button>
+          <button class="filter-btn" id="cat-processual" onclick="selecionarCategoria('processual',this)">Processual</button>
+          <button class="filter-btn" id="cat-trabalhista" onclick="selecionarCategoria('trabalhista',this)">Trabalhista</button>
         </div>
-        <div class="doc-type-card" id="dt-cobertura" onclick="selectDoc('cobertura')">
-          <div class="doc-icon">🛡</div><div class="doc-name">Cobertura</div><div class="doc-desc">Advocacia de cobertura</div>
+
+        <div id="docs-comercial" class="doc-categoria">
+          <div class="doc-types" id="doc-types-bar">
+            <div class="doc-type-card selected" id="dt-assessoria" onclick="selectDoc('assessoria')">
+              <div class="doc-icon">⚖️</div><div class="doc-name">Assessoria</div><div class="doc-desc">Assessoria jurídica continuada</div>
+            </div>
+            <div class="doc-type-card" id="dt-cobertura" onclick="selectDoc('cobertura')">
+              <div class="doc-icon">🛡️</div><div class="doc-name">Cobertura</div><div class="doc-desc">Advocacia de cobertura</div>
+            </div>
+            <div class="doc-type-card" id="dt-gestao" onclick="selectDoc('gestao')">
+              <div class="doc-icon">📊</div><div class="doc-name">Gestão</div><div class="doc-desc">Gestão jurídica empresarial</div>
+            </div>
+          </div>
         </div>
-        <div class="doc-type-card" id="dt-gestao" onclick="selectDoc('gestao')">
-          <div class="doc-icon">📊</div><div class="doc-name">Gestão</div><div class="doc-desc">Gestão jurídica empresarial</div>
+
+        <div id="docs-processual" class="doc-categoria" style="display:none">
+          <div class="doc-types">
+            <div class="doc-type-card selected" id="dt-procuracao" onclick="selectDoc('procuracao')">
+              <div class="doc-icon">📜</div><div class="doc-name">Procuração</div><div class="doc-desc">Ad judicia et extra</div>
+            </div>
+            <div class="doc-type-card" id="dt-hipossuficiencia" onclick="selectDoc('hipossuficiencia')">
+              <div class="doc-icon">📄</div><div class="doc-name">Hipossuficiência</div><div class="doc-desc">Gratuidade de justiça</div>
+            </div>
+          </div>
         </div>
-        <div class="doc-type-card" id="dt-procuracao" onclick="selectDoc('procuracao')">
-          <div class="doc-icon">📜</div><div class="doc-name">Procuração</div><div class="doc-desc">Ad judicia et extra</div>
-        </div>
-        <div class="doc-type-card" id="dt-hipossuficiencia" onclick="selectDoc('hipossuficiencia')">
-          <div class="doc-icon">📄</div><div class="doc-name">Hipossuficiência</div><div class="doc-desc">Gratuidade de justiça</div>
+
+        <div id="docs-trabalhista" class="doc-categoria" style="display:none">
+          <div style="background:var(--sf2);border:1px dashed var(--br2);border-radius:var(--radius);padding:32px;text-align:center;color:var(--ink3)">
+            <svg viewBox="0 0 24 24" style="width:32px;height:32px;stroke:var(--br2);fill:none;stroke-width:1.5;margin-bottom:8px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+            <div style="font-size:13px;font-weight:500;margin-bottom:4px">Modelos trabalhistas</div>
+            <div style="font-size:11px">Advertência, suspensão, justa causa e outros modelos serão adicionados aqui</div>
+          </div>
         </div>
       </div>
 
@@ -1204,6 +1227,12 @@ const USUARIOS_VALIDOS = {
   'Admin':     'admin123'
 };
 
+function verificarSenha(usuario, senha){
+  const esperada = USUARIOS_VALIDOS[usuario];
+  if(!esperada) return false;
+  return senha === esperada;
+}
+
 let DB = {clientes:[],tarefas:[],calendario:[],radar:[],usuarios:[],checklistItens:[],checklistStatus:[]};
 let usuarioAtual = null;
 let filAtual = 'todas';
@@ -1285,6 +1314,66 @@ function renderCalPage(){
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+function cadastroRapidoCliente(selectId){
+  abrirModal('Cadastrar Cliente Rápido',`
+    <div class="doc-field"><label>Nome / Razão Social*</label><input id="crc-nome" type="text" placeholder="Nome completo ou razão social"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>Tipo</label><select id="crc-tipo"><option value="Recorrente">Recorrente</option><option value="Avulso">Avulso</option></select></div>
+      <div class="doc-field"><label>Setor</label><input id="crc-setor" type="text" placeholder="Ex: Educacional, Indústria..."></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Telefone</label><input id="crc-tel" type="text" placeholder="(16) 99999-9999"></div>
+      <div class="doc-field"><label>E-mail</label><input id="crc-email" type="email" placeholder="email@exemplo.com"></div>
+    </div>`,
+  async ()=>{
+    const nome = document.getElementById('crc-nome').value.trim();
+    if(!nome){ showToast('Informe o nome do cliente'); return; }
+    const payload = {
+      action:'saveCliente', nome, status:'Ativo',
+      tipo: document.getElementById('crc-tipo').value,
+      setor: document.getElementById('crc-setor').value,
+      tel: document.getElementById('crc-tel').value,
+      email: document.getElementById('crc-email').value,
+      resp:'', obs:'', cnpj:'', endereco:'', rep:'', repcpf:'', repqual:''
+    };
+    fecharModal();
+    showToast('Salvando cliente…');
+    try{
+      const r = await fetch(API,{method:'POST',body:JSON.stringify(payload)});
+      const d = await r.json();
+      if(d.ok){
+        await loadData();
+        // Selecionar o novo cliente no select original
+        const sel = document.getElementById(selectId);
+        if(sel){
+          const novoCliente = DB.clientes.find(cl=>cl.Nome===nome);
+          if(novoCliente){
+            const opt = document.createElement('option');
+            opt.value = novoCliente.ID;
+            opt.textContent = novoCliente.Nome;
+            opt.selected = true;
+            sel.appendChild(opt);
+          }
+        }
+        showToast('Cliente cadastrado!');
+      } else {
+        showToast('Erro ao salvar cliente');
+      }
+    }catch(e){ showToast('Erro de conexão'); }
+  });
+}
+
+function selecionarCategoria(cat, btn){
+  document.querySelectorAll('.doc-categoria').forEach(d=>d.style.display='none');
+  document.querySelectorAll('#pg-documentos .filter-btn').forEach(b=>b.classList.remove('on'));
+  const el = document.getElementById('docs-'+cat);
+  if(el) el.style.display='block';
+  if(btn) btn.classList.add('on');
+  // Selecionar primeiro doc da categoria
+  if(cat==='comercial') selectDoc('assessoria');
+  if(cat==='processual') selectDoc('procuracao');
+}
+
 window.onload = () => {
   const u = sessionStorage.getItem('littera_user');
   if(u){ usuarioAtual = u; mostrarApp(); loadData(); }
@@ -1293,7 +1382,7 @@ window.onload = () => {
 function fazerLogin(){
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
-  if(USUARIOS_VALIDOS[u] && USUARIOS_VALIDOS[u] === p){
+  if(verificarSenha(u, p)){
     usuarioAtual = u;
     sessionStorage.setItem('littera_user', u);
     mostrarApp();
@@ -1783,7 +1872,12 @@ function abrirModalTarefa(id){
   abrirModal(t?'Editar Tarefa':'Nova Tarefa',`
     <div class="doc-field"><label>Título</label><input id="m-titulo" value="${fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
     <div class="form-row">
-      <div class="doc-field"><label>Cliente</label><select id="m-cli"><option value="">Geral</option>${cliOpts}</select></div>
+      <div class="doc-field"><label>Cliente</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="m-cli" style="flex:1"><option value="">Geral</option>${cliOpts}</select>
+          <button type="button" class="btn sm" onclick="cadastroRapidoCliente('m-cli')" title="Cadastrar novo cliente" style="flex-shrink:0;white-space:nowrap">+ Novo</button>
+        </div>
+      </div>
       <div class="doc-field"><label>Área</label><select id="m-area"><option ${t?.Area==='Trabalhista'?'selected':''}>Trabalhista</option><option ${t?.Area==='Tributário'?'selected':''}>Tributário</option><option ${t?.Area==='Societário'?'selected':''}>Societário</option><option ${t?.Area==='Consumidor'?'selected':''}>Consumidor</option><option ${t?.Area==='Cível'?'selected':''}>Cível</option><option ${t?.Area==='LGPD'?'selected':''}>LGPD</option><option ${t?.Area==='Geral'?'selected':''}>Geral</option></select></div>
     </div>
     <div class="form-row">
@@ -2853,72 +2947,136 @@ function marcarPubTratada(id){
   if(p){ p.status='tratada'; localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes)); renderPublicacoes(); }
 }
 
+function diasUteisApos(dataBase, dias){
+  const feriados=['01/01','21/04','01/05','07/09','12/10','02/11','15/11','25/12'];
+  let d = new Date(dataBase); d.setHours(12,0,0,0);
+  let count = 0;
+  while(count < dias){
+    d.setDate(d.getDate()+1);
+    const dow = d.getDay();
+    const ddmm = String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+    if(dow!==0 && dow!==6 && !feriados.includes(ddmm)) count++;
+  }
+  return d;
+}
+
+function fmtDateInput(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
 function gerarTarefaDePub(id){
   carregarPublicacoesLocais();
   const p=DB.publicacoes.find(x=>x.id===id); if(!p) return;
-  // Pré-preencher modal de tarefa com dados da publicação
   const cliOpts=DB.clientes.filter(cl=>cl.Status==='Ativo').map(cl=>`<option value="${cl.ID}" data-nome="${cl.Nome.replace(/"/g,'&quot;')}" ${p.cliente&&cl.Nome===p.cliente?'selected':''}>${cl.Nome}</option>`).join('');
-  const usOpts=DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('');
-  abrirModal('Nova Tarefa — a partir de publicação',`
-    <div style="background:var(--gold-dim);border:1px solid var(--gold-border,rgba(196,146,42,.3));border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--jade)">
-      Publicação: <strong>${p.numero||'—'}</strong> · ${p.data||'—'} · ${p.conteudo||''}
+  const tiposAto=[
+    {v:'contestacao',l:'Contestação',dias:15},
+    {v:'recurso',l:'Recurso / Apelação',dias:15},
+    {v:'contrarrazoes',l:'Contrarrazões',dias:15},
+    {v:'impugnacao',l:'Impugnação',dias:15},
+    {v:'manifestacao',l:'Manifestação geral',dias:5},
+    {v:'embargos',l:'Embargos de Declaração',dias:5},
+    {v:'agravo',l:'Agravo',dias:15},
+    {v:'outro',l:'Outro (informar dias)',dias:15},
+  ];
+  abrirModal('Gerar Tarefas — Publicação',`
+    <div style="background:rgba(196,146,42,.1);border:1px solid rgba(196,146,42,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:11px;color:var(--jade)">
+      📋 Publicação: <strong>${p.numero||'—'}</strong> · ${p.data||'—'}<br>
+      <span style="opacity:.8">${(p.conteudo||'').substring(0,80)}${p.conteudo&&p.conteudo.length>80?'...':''}</span>
     </div>
-    <div class="doc-field"><label>Título*</label><input id="m-titulo" value="Analisar publicação — ${p.numero||''}" placeholder="Descrição da tarefa"></div>
     <div class="form-row">
-      <div class="doc-field"><label>Cliente</label><select id="m-cli"><option value="">Geral</option>${cliOpts}</select></div>
-      <div class="doc-field"><label>Área</label><select id="m-area"><option>Processual</option><option>Contratos</option><option>Trabalhista</option><option>Tributário</option><option>Geral</option></select></div>
+      <div class="doc-field"><label>Data da publicação*</label><input id="gtp-data" type="date" value="${p.data?(()=>{const pt=p.data.split('/');return pt.length===3?pt[2]+'-'+pt[1]+'-'+pt[0]:'';})():''}"></div>
+      <div class="doc-field"><label>Tipo do ato*</label><select id="gtp-tipo" onchange="atualizarDiasGTP()">
+        ${tiposAto.map(t=>`<option value="${t.v}" data-dias="${t.dias}">${t.l} (${t.dias} d.u.)</option>`).join('')}
+      </select></div>
     </div>
     <div class="form-row">
-      <div class="doc-field"><label>Urgência</label><select id="m-urg"><option>Normal</option><option>Alta</option><option selected>Urgente</option></select></div>
-      <div class="doc-field"><label>Vencimento</label><input id="m-venc" type="date"></div>
+      <div class="doc-field"><label>Dias úteis</label><input id="gtp-dias" type="number" value="15" min="1" max="120" onchange="recalcularPrazosGTP()"></div>
+      <div class="doc-field"><label>Cliente</label><select id="gtp-cli"><option value="">— Sem vínculo —</option>${cliOpts}</select></div>
     </div>
     <div class="form-row">
-      <div class="doc-field"><label>Horário</label><input id="m-hora" type="time" value="09:00"></div>
-      <div class="doc-field"><label>Responsável</label><select id="m-resp"><option>Francisco</option>${usOpts}</select></div>
+      <div class="doc-field"><label>Responsável</label><select id="gtp-resp">${DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('')}</select></div>
     </div>
-    <div class="doc-field"><label>Observações</label><textarea id="m-obs" rows="2">${p.conteudo||''}</textarea></div>`,
-  ()=>salvarTarefa(null));
-}
+    <div style="background:var(--sf2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px">
+      <div style="font-weight:500;margin-bottom:6px;color:var(--jade)">Tarefas que serão criadas:</div>
+      <div style="display:flex;gap:8px;margin-bottom:4px"><span class="tag alt">Produção</span><span id="gtp-label-prod" style="color:var(--ink2)">5 dias úteis antes do prazo</span><span id="gtp-data-prod" style="color:var(--ink3);font-family:monospace"></span></div>
+      <div style="display:flex;gap:8px"><span class="tag urg">Prazo</span><span id="gtp-label-prazo" style="color:var(--ink2)">Vencimento final</span><span id="gtp-data-prazo" style="color:var(--ink3);font-family:monospace"></span></div>
+    </div>`,
+  ()=>{
+    const dataBase = document.getElementById('gtp-data').value;
+    if(!dataBase){ showToast('Informe a data da publicação'); return; }
+    const dias = parseInt(document.getElementById('gtp-dias').value)||15;
+    const tipo = document.getElementById('gtp-tipo').value;
+    const tipoLabel = document.getElementById('gtp-tipo').options[document.getElementById('gtp-tipo').selectedIndex].text;
+    const cliEl = document.getElementById('gtp-cli');
+    const cliId = cliEl.value;
+    const cliNome = cliId?(DB.clientes.find(x=>x.ID===cliId)?.Nome||''):'';
+    const resp = document.getElementById('gtp-resp').value;
 
-async function sincPublicacoes(){
-  carregarProcessosLocais(); carregarPublicacoesLocais();
-  const cfg=carregarConfigMonitor();
-  const btn=document.getElementById('btn-sinc-pub');
-  if(!cfg.oab&&!DB.processos.length){ showToast('Configure sua OAB (botão ⚙) ou cadastre processos'); return; }
-  if(btn){ btn.textContent='⟳ Consultando…'; btn.disabled=true; }
-  showToast('Consultando DataJud…');
-  let novas=0; const ex=new Set(DB.publicacoes.map(p=>p.id));
-  for(const proc of DB.processos.slice(0,5)){
-    if(!proc.numero) continue;
-    try{
-      const r=await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},
-        body:JSON.stringify({query:{match:{numeroProcesso:proc.numero}},size:1})
-      });
-      const d=await r.json(); const hits=d?.hits?.hits||[];
-      if(hits.length){
-        (hits[0]._source.movimentos||[]).slice(-5).forEach(m=>{
-          const id=proc.numero+'_'+(m.dataHora||Date.now());
-          if(!ex.has(id)){
-            DB.publicacoes.push({id,numero:proc.numero,tipo:'publicação',
-              data:m.dataHora?new Date(m.dataHora).toLocaleDateString('pt-BR'):'',
-              conteudo:m.nome||m.descricao||'Movimentação',
-              cliente:proc.cliente||'',status:'nao_tratada'});
-            ex.add(id); novas++;
-          }
-        });
+    // Calcular datas
+    const base = new Date(dataBase+'T12:00:00');
+    const dtPrazo = diasUteisApos(base, dias);
+    const dtProd = diasUteisApos(base, Math.max(1, dias-5));
+
+    const fmtBR = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    const fmtIn = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+    // Tarefa 1: produção
+    const pay1 = {
+      action:'saveTarefa', cliId, cliNome,
+      titulo: '[Produção] '+tipoLabel+' — '+( p.numero||'Proc.'),
+      area:'Processual', urgencia:'Alta', resp,
+      venc: fmtBR(dtProd), hora:'09:00', dur:'allday',
+      obs:'Gerado automaticamente a partir de publicação. Prazo final: '+fmtBR(dtPrazo)
+    };
+    // Tarefa 2: prazo
+    const pay2 = {
+      action:'saveTarefa', cliId, cliNome,
+      titulo: '[PRAZO] '+tipoLabel+' — '+(p.numero||'Proc.'),
+      area:'Processual', urgencia:'Urgente', resp,
+      venc: fmtBR(dtPrazo), hora:'09:00', dur:'allday',
+      obs:'Prazo processual gerado automaticamente a partir de publicação em '+fmtBR(base)
+    };
+
+    fecharModal();
+    showToast('Criando tarefas…');
+    Promise.all([
+      fetch(API,{method:'POST',body:JSON.stringify(pay1)}).then(r=>r.json()),
+      fetch(API,{method:'POST',body:JSON.stringify(pay2)}).then(r=>r.json())
+    ]).then(([r1,r2])=>{
+      if(r1.ok&&r2.ok){
+        showToast('2 tarefas criadas! Produção: '+fmtBR(dtProd)+' | Prazo: '+fmtBR(dtPrazo));
+        loadData();
+      } else {
+        showToast('Erro ao criar tarefas');
       }
-      await new Promise(r=>setTimeout(r,500));
-    }catch(e){}
-  }
-  localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes));
-  renderPublicacoes();
-  if(btn){ btn.textContent='⟳ Buscar DataJud'; btn.disabled=false; }
-  showToast(novas>0?novas+' nova(s) publicação(ões)':'Consultado — sem novidades');
+    }).catch(()=>showToast('Erro de conexão'));
+  });
+
+  // Calcular preview inicial
+  setTimeout(recalcularPrazosGTP, 100);
 }
 
-// ── Configuração OAB ──
+function atualizarDiasGTP(){
+  const sel = document.getElementById('gtp-tipo');
+  const dias = sel.options[sel.selectedIndex]?.getAttribute('data-dias')||15;
+  const inp = document.getElementById('gtp-dias');
+  if(inp) inp.value = dias;
+  recalcularPrazosGTP();
+}
+
+function recalcularPrazosGTP(){
+  const dataBase = document.getElementById('gtp-data')?.value;
+  const dias = parseInt(document.getElementById('gtp-dias')?.value)||15;
+  if(!dataBase) return;
+  const base = new Date(dataBase+'T12:00:00');
+  const dtPrazo = diasUteisApos(base, dias);
+  const dtProd = diasUteisApos(base, Math.max(1, dias-5));
+  const fmtBR = d => String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+  const ep = document.getElementById('gtp-data-prazo'); if(ep) ep.textContent = fmtBR(dtPrazo);
+  const epr = document.getElementById('gtp-data-prod'); if(epr) epr.textContent = fmtBR(dtProd);
+}
+
+
 function carregarConfigMonitor(){ const s=localStorage.getItem('littera_monitor'); if(s) try{return JSON.parse(s);}catch(e){} return{oab:'',cpf:'',documentos:[]}; }
 function salvarConfigMonitor(cfg){ localStorage.setItem('littera_monitor',JSON.stringify(cfg)); }
 
