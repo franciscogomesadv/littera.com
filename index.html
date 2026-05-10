@@ -1145,18 +1145,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     </div>
 
     <div class="pg" id="pg-crm">
-      <div class="future-placeholder">
-        <div class="fp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg></div>
-        <div class="fp-title">CRM — Gestão de Relacionamento</div>
-        <div class="fp-sub">Cadastro completo de clientes, histórico de relacionamento, follow-up automático, pipeline de captação, LTV por cliente e portal do cliente. Integrado com todas as outras funcionalidades do Littera.</div>
-        <div class="fp-badge">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Fase 2 — Em desenvolvimento
+      <div id="crm-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
+      <div class="dash-sec">
+        <div class="sh">
+          <span class="st">Pipeline de Captação</span>
+          <div class="sh-actions">
+            <button class="btn sm primary" onclick="abrirModalLead()">+ Novo lead</button>
+          </div>
         </div>
+        <div id="crm-kanban" style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px"></div>
       </div>
     </div>
-
-
     <div class="pg" id="pg-honorarios">
       <div id="hon-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
       <div class="dash-sec">
@@ -1222,16 +1221,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 // ══════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycby8udAX6WyjkFFLFT8HHjI6gIS_jFJR6o0HaTAc-Axm7gGnKBqGxsq5BcCNJXRh8Lw3Zw/exec';
 const USUARIOS_VALIDOS = {
-  'Francisco': 'fga2024',
-  'Eduardo':   'eduardo2026',
-  'Admin':     'admin123'
+  'Francisco': {senha:'fga2024',   nivel:'admin'},
+  'Eduardo':   {senha:'eduardo2026', nivel:'estagiario'},
+  'Admin':     {senha:'admin123',  nivel:'admin'}
+};
+
+const NIVEIS = {
+  admin:      {label:'Administrador', podeExcluir:true,  verFinanceiro:true,  verUsuarios:true,  verConfig:true},
+  advogado:   {label:'Advogado',      podeExcluir:true,  verFinanceiro:true,  verUsuarios:false, verConfig:false},
+  estagiario: {label:'Estagiário',    podeExcluir:false, verFinanceiro:false, verUsuarios:false, verConfig:false},
 };
 
 function verificarSenha(usuario, senha){
-  const esperada = USUARIOS_VALIDOS[usuario];
-  if(!esperada) return false;
-  return senha === esperada;
+  const u = USUARIOS_VALIDOS[usuario];
+  if(!u) return false;
+  return senha === u.senha;
 }
+
+function nivelAtual(){
+  if(!usuarioAtual) return NIVEIS.estagiario;
+  const u = USUARIOS_VALIDOS[usuarioAtual];
+  return NIVEIS[u?.nivel || 'estagiario'] || NIVEIS.estagiario;
+}
+
+function podeExcluir(){ return nivelAtual().podeExcluir; }
+function podeVerFinanceiro(){ return nivelAtual().verFinanceiro; }
+function podeVerUsuarios(){ return nivelAtual().verUsuarios; }
 
 let DB = {clientes:[],tarefas:[],calendario:[],radar:[],usuarios:[],checklistItens:[],checklistStatus:[]};
 let usuarioAtual = null;
@@ -1314,27 +1329,48 @@ function renderCalPage(){
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
-function cadastroRapidoCliente(selectId){
-  abrirModal('Cadastrar Cliente Rápido',`
-    <div class="doc-field"><label>Nome / Razão Social*</label><input id="crc-nome" type="text" placeholder="Nome completo ou razão social"></div>
+function cadastroRapidoCliente(selectId, onSalvo){
+  abrirModal('Cadastrar Novo Cliente',`
     <div class="form-row">
+      <div class="doc-field"><label>Nome / Razão Social*</label><input id="crc-nome" type="text" placeholder="Nome completo ou razão social"></div>
       <div class="doc-field"><label>Tipo</label><select id="crc-tipo"><option value="Recorrente">Recorrente</option><option value="Avulso">Avulso</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>CNPJ / CPF</label><input id="crc-cnpj" type="text" placeholder="00.000.000/0001-00"></div>
       <div class="doc-field"><label>Setor</label><input id="crc-setor" type="text" placeholder="Ex: Educacional, Indústria..."></div>
     </div>
     <div class="form-row">
       <div class="doc-field"><label>Telefone</label><input id="crc-tel" type="text" placeholder="(16) 99999-9999"></div>
       <div class="doc-field"><label>E-mail</label><input id="crc-email" type="email" placeholder="email@exemplo.com"></div>
-    </div>`,
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Respons&#225;vel interno</label><select id="crc-resp">${DB.usuarios.map(u=>'<option>'+u.Nome+'</option>').join('')}</select></div>
+      <div class="doc-field"><label>Status</label><select id="crc-status"><option value="Ativo">Ativo</option><option value="Inativo">Inativo</option></select></div>
+    </div>
+    <div class="doc-field"><label>Endereço</label><input id="crc-end" type="text" placeholder="Rua, número, cidade - UF"></div>
+    <div class="doc-field"><label>Representante Legal</label><input id="crc-rep" type="text" placeholder="Nome do representante"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>CPF do representante</label><input id="crc-repcpf" type="text" placeholder="000.000.000-00"></div>
+      <div class="doc-field"><label>Qualificação</label><input id="crc-repqual" type="text" placeholder="Ex: Sócio-administrador"></div>
+    </div>
+    <div class="doc-field"><label>Observações</label><textarea id="crc-obs" rows="2" placeholder="Observações internas"></textarea></div>`,
   async ()=>{
     const nome = document.getElementById('crc-nome').value.trim();
     if(!nome){ showToast('Informe o nome do cliente'); return; }
     const payload = {
-      action:'saveCliente', nome, status:'Ativo',
-      tipo: document.getElementById('crc-tipo').value,
-      setor: document.getElementById('crc-setor').value,
-      tel: document.getElementById('crc-tel').value,
-      email: document.getElementById('crc-email').value,
-      resp:'', obs:'', cnpj:'', endereco:'', rep:'', repcpf:'', repqual:''
+      action:'saveCliente', nome,
+      tipo:     document.getElementById('crc-tipo').value,
+      cnpj:     document.getElementById('crc-cnpj').value,
+      setor:    document.getElementById('crc-setor').value,
+      tel:      document.getElementById('crc-tel').value,
+      email:    document.getElementById('crc-email').value,
+      resp:     document.getElementById('crc-resp').value,
+      status:   document.getElementById('crc-status').value,
+      endereco: document.getElementById('crc-end').value,
+      rep:      document.getElementById('crc-rep').value,
+      repcpf:   document.getElementById('crc-repcpf').value,
+      repqual:  document.getElementById('crc-repqual').value,
+      obs:      document.getElementById('crc-obs').value,
     };
     fecharModal();
     showToast('Salvando cliente…');
@@ -1343,25 +1379,26 @@ function cadastroRapidoCliente(selectId){
       const d = await r.json();
       if(d.ok){
         await loadData();
-        // Selecionar o novo cliente no select original
-        const sel = document.getElementById(selectId);
-        if(sel){
-          const novoCliente = DB.clientes.find(cl=>cl.Nome===nome);
-          if(novoCliente){
+        const novoCliente = DB.clientes.find(cl=>cl.Nome===nome);
+        if(selectId && novoCliente){
+          const sel = document.getElementById(selectId);
+          if(sel){
+            // Atualizar todas as options do select
             const opt = document.createElement('option');
             opt.value = novoCliente.ID;
             opt.textContent = novoCliente.Nome;
+            opt.setAttribute('data-nome', novoCliente.Nome);
             opt.selected = true;
             sel.appendChild(opt);
           }
         }
-        showToast('Cliente cadastrado!');
-      } else {
-        showToast('Erro ao salvar cliente');
-      }
+        if(typeof onSalvo === 'function') onSalvo(novoCliente);
+        showToast('Cliente cadastrado com sucesso!');
+      } else { showToast('Erro ao salvar: '+(d.msg||'')); }
     }catch(e){ showToast('Erro de conexão'); }
   });
 }
+
 
 function selecionarCategoria(cat, btn){
   document.querySelectorAll('.doc-categoria').forEach(d=>d.style.display='none');
@@ -1372,6 +1409,138 @@ function selecionarCategoria(cat, btn){
   // Selecionar primeiro doc da categoria
   if(cat==='comercial') selectDoc('assessoria');
   if(cat==='processual') selectDoc('procuracao');
+}
+
+
+// ══ CRM ══
+const CRM_ETAPAS = [
+  {id:'contato',   label:'Contato',    cor:'var(--ink3)'},
+  {id:'proposta',  label:'Proposta',   cor:'var(--blu)'},
+  {id:'negociando',label:'Negociando', cor:'var(--amb)'},
+  {id:'fechado',   label:'Fechado',    cor:'var(--grn)'},
+  {id:'perdido',   label:'Perdido',    cor:'var(--red)'},
+];
+
+function carregarLeads(){ const s=localStorage.getItem('littera_leads'); if(s) try{DB.leads=JSON.parse(s);}catch(e){} if(!DB.leads) DB.leads=[]; }
+
+function renderCRM(){
+  carregarLeads();
+  const el=document.getElementById('crm-kanban'); if(!el) return;
+  const se=document.getElementById('crm-stats');
+  if(se) se.innerHTML=`
+    <div class="stat-card c1"><div class="stat-num">${DB.leads.length}</div><div class="stat-lbl">Total leads</div></div>
+    <div class="stat-card c4"><div class="stat-num">${DB.leads.filter(l=>l.etapa==='fechado').length}</div><div class="stat-lbl">Fechados</div></div>
+    <div class="stat-card c3"><div class="stat-num">${DB.leads.filter(l=>l.etapa==='negociando').length}</div><div class="stat-lbl">Negociando</div></div>
+    <div class="stat-card c2"><div class="stat-num">${DB.leads.filter(l=>l.etapa==='perdido').length}</div><div class="stat-lbl">Perdidos</div></div>`;
+  el.innerHTML = CRM_ETAPAS.map(et=>{
+    const leads = DB.leads.filter(l=>l.etapa===et.id);
+    return `<div style="background:var(--sf);border-radius:var(--radius);border:1px solid var(--br);overflow:hidden">
+      <div style="padding:10px 12px;border-bottom:1px solid var(--br);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:${et.cor}">${et.label}</span>
+        <span style="font-size:11px;background:var(--sf2);padding:1px 8px;border-radius:99px">${leads.length}</span>
+      </div>
+      <div style="padding:8px;min-height:80px;display:flex;flex-direction:column;gap:6px">
+        ${leads.length ? leads.map(l=>`<div style="background:var(--bg);border-radius:8px;padding:8px 10px;border:1px solid var(--br);cursor:pointer" onclick="editarLead('${l.id}')">
+          <div style="font-size:12px;font-weight:500;margin-bottom:2px">${l.nome}</div>
+          <div style="font-size:10px;color:var(--ink3)">${l.setor||'—'} · ${l.valor?'R$ '+parseFloat(l.valor).toLocaleString('pt-BR'):'—'}</div>
+          ${l.contato?`<div style="font-size:10px;color:var(--ink3);margin-top:2px">📞 ${l.contato}</div>`:''}
+        </div>`).join('') : `<div style="font-size:11px;color:var(--ink3);text-align:center;padding:12px 0">Nenhum</div>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirModalLead(id){
+  carregarLeads();
+  const l = id ? DB.leads.find(x=>x.id===id) : null;
+  const etOpts = CRM_ETAPAS.map(et=>`<option value="${et.id}" ${l&&l.etapa===et.id?'selected':''}>${et.label}</option>`).join('');
+  abrirModal(l?'Editar Lead':'Novo Lead',`
+    <div class="doc-field"><label>Nome / Empresa*</label><input id="ml-nome" type="text" value="${l?l.nome:''}" placeholder="Nome do potencial cliente"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>Setor</label><input id="ml-setor" type="text" value="${l?l.setor||'':''}" placeholder="Ex: Educacional"></div>
+      <div class="doc-field"><label>Etapa</label><select id="ml-etapa">${etOpts}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Contato</label><input id="ml-contato" type="text" value="${l?l.contato||'':''}" placeholder="Telefone ou e-mail"></div>
+      <div class="doc-field"><label>Valor estimado (R$)</label><input id="ml-valor" type="number" value="${l?l.valor||'':''}" placeholder="0,00"></div>
+    </div>
+    <div class="doc-field"><label>Origem</label><select id="ml-origem">
+      <option ${l&&l.origem==='indicacao'?'selected':''} value="indicacao">Indicação</option>
+      <option ${l&&l.origem==='prospeccao'?'selected':''} value="prospeccao">Prospecção ativa</option>
+      <option ${l&&l.origem==='rede_social'?'selected':''} value="rede_social">Rede social</option>
+      <option ${l&&l.origem==='site'?'selected':''} value="site">Site</option>
+      <option ${l&&l.origem==='outro'?'selected':''} value="outro">Outro</option>
+    </select></div>
+    <div class="doc-field"><label>Observações</label><textarea id="ml-obs" rows="2">${l?l.obs||'':''}</textarea></div>
+    ${l?`<div style="margin-top:8px"><button class="btn sm" style="color:var(--grn)" onclick="converterLeadEmCliente('${l.id}')">✓ Converter em cliente</button></div>`:''}`,
+  ()=>{
+    const nome=document.getElementById('ml-nome').value.trim();
+    if(!nome){ showToast('Informe o nome'); return; }
+    carregarLeads();
+    const dados={
+      id: l?l.id:uid(), nome,
+      setor:   document.getElementById('ml-setor').value,
+      etapa:   document.getElementById('ml-etapa').value,
+      contato: document.getElementById('ml-contato').value,
+      valor:   document.getElementById('ml-valor').value,
+      origem:  document.getElementById('ml-origem').value,
+      obs:     document.getElementById('ml-obs').value,
+      criado:  l?l.criado:new Date().toLocaleDateString('pt-BR'),
+    };
+    if(l){ const idx=DB.leads.findIndex(x=>x.id===l.id); DB.leads[idx]=dados; }
+    else DB.leads.push(dados);
+    localStorage.setItem('littera_leads',JSON.stringify(DB.leads));
+    fecharModal(); renderCRM(); showToast(l?'Lead atualizado!':'Lead cadastrado!');
+  });
+}
+
+function editarLead(id){ abrirModalLead(id); }
+
+function converterLeadEmCliente(id){
+  carregarLeads();
+  const l=DB.leads.find(x=>x.id===id); if(!l) return;
+  fecharModal();
+  // Abrir cadastro de cliente pré-preenchido
+  abrirModal('Converter Lead em Cliente',`
+    <div style="background:rgba(29,111,66,.1);border:1px solid rgba(29,111,66,.3);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--grn)">
+      Convertendo lead <strong>${l.nome}</strong> em cliente cadastrado
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Nome / Razão Social*</label><input id="crc-nome" type="text" value="${l.nome}"></div>
+      <div class="doc-field"><label>Tipo</label><select id="crc-tipo"><option value="Recorrente">Recorrente</option><option value="Avulso">Avulso</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>CNPJ / CPF</label><input id="crc-cnpj" type="text"></div>
+      <div class="doc-field"><label>Setor</label><input id="crc-setor" type="text" value="${l.setor||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Telefone</label><input id="crc-tel" type="text" value="${l.contato||''}"></div>
+      <div class="doc-field"><label>E-mail</label><input id="crc-email" type="email"></div>
+    </div>
+    <div class="form-row">
+      <div class="doc-field"><label>Responsável</label><select id="crc-resp">${DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('')}</select></div>
+      <div class="doc-field"><label>Status</label><select id="crc-status"><option value="Ativo">Ativo</option></select></div>
+    </div>
+    <div class="doc-field"><label>Endereço</label><input id="crc-end" type="text"></div>
+    <div class="doc-field"><label>Obs</label><textarea id="crc-obs" rows="2">${l.obs||''}</textarea></div>`,
+  async ()=>{
+    const nome=document.getElementById('crc-nome').value.trim();
+    if(!nome){ showToast('Informe o nome'); return; }
+    const payload={action:'saveCliente',nome,tipo:document.getElementById('crc-tipo').value,cnpj:document.getElementById('crc-cnpj').value,setor:document.getElementById('crc-setor').value,tel:document.getElementById('crc-tel').value,email:document.getElementById('crc-email').value,resp:document.getElementById('crc-resp').value,status:'Ativo',endereco:document.getElementById('crc-end').value,obs:document.getElementById('crc-obs').value,rep:'',repcpf:'',repqual:''};
+    fecharModal();
+    showToast('Convertendo…');
+    try{
+      const r=await fetch(API,{method:'POST',body:JSON.stringify(payload)});
+      const d=await r.json();
+      if(d.ok){
+        // Marcar lead como fechado
+        const idx=DB.leads.findIndex(x=>x.id===id);
+        if(idx>=0){ DB.leads[idx].etapa='fechado'; localStorage.setItem('littera_leads',JSON.stringify(DB.leads)); }
+        await loadData(); renderCRM();
+        showToast('Lead convertido em cliente!');
+      } else showToast('Erro: '+(d.msg||''));
+    }catch(e){ showToast('Erro de conexão'); }
+  });
 }
 
 window.onload = () => {
@@ -1395,6 +1564,17 @@ function fazerLogin(){
 
 function mostrarApp(){
   document.getElementById('login-overlay').style.display = 'none';
+  // Aplicar restrições por nível
+  setTimeout(()=>{
+    const nivel = nivelAtual();
+    const navU = document.getElementById('nav-usuarios');
+    if(navU) navU.style.display = nivel.verUsuarios ? '' : 'none';
+    const navH = document.getElementById('nav-honorarios');
+    if(navH) navH.style.display = nivel.verFinanceiro ? '' : 'none';
+    // Badge de nível no topbar
+    const av = document.getElementById('user-av-txt');
+    if(av) av.title = nivel.label;
+  }, 100);
   const av = usuarioAtual.substring(0,2).toUpperCase();
   document.getElementById('user-av-txt').textContent = av;
   document.getElementById('user-name-txt').textContent = usuarioAtual;
@@ -1511,6 +1691,7 @@ function goPg(id){
   // Render páginas novas
   setTimeout(()=>{
     if(id==='honorarios'&&typeof renderHonorarios==='function') renderHonorarios();
+    if(id==='crm'&&typeof renderCRM==='function') renderCRM();
     if(id==='publicacoes'&&typeof renderPublicacoes==='function') renderPublicacoes();
     if(id==='processos'&&typeof renderProcessos==='function') renderProcessos();
     if(id==='expediente'&&typeof renderExpediente==='function') renderExpediente();
@@ -1854,12 +2035,20 @@ function renderRadar(){
 function renderUsuarios(){
   const el=document.getElementById('lu');
   if(!DB.usuarios.length){ el.innerHTML='<div class="empty">Nenhum usuário</div>'; return; }
-  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:7px;">${DB.usuarios.map(u=>`
-    <div class="ev-card">
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:7px;">${DB.usuarios.map(u=>{
+    const info = USUARIOS_VALIDOS[u.Nome];
+    const nivelLabel = info ? (NIVEIS[info.nivel]?.label||info.nivel) : '—';
+    const nivelCor = info?.nivel==='admin'?'var(--jade)':info?.nivel==='advogado'?'var(--blu)':'var(--ink3)';
+    return `<div class="ev-card">
       <div class="cli-av" style="width:36px;height:36px;border-radius:50%;">${initials(u.Nome)}</div>
-      <div class="ev-info"><div class="ev-title">${u.Nome}</div><div class="ev-meta">${u.Cargo||'—'} · ${u.Email||'—'} · desde ${u.DataCriacao||'—'}</div></div>
-      <button class="icon-btn danger" onclick="delItem('Usuarios','${u.ID}','usuarios')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
-    </div>`).join('')}</div>`;
+      <div class="ev-info">
+        <div class="ev-title">${u.Nome} <span style="font-size:10px;font-weight:500;color:${nivelCor};background:var(--sf2);padding:1px 7px;border-radius:99px;margin-left:4px">${nivelLabel}</span></div>
+        <div class="ev-meta">${u.Cargo||'—'} · ${u.Email||'—'} · desde ${u.DataCriacao||'—'}</div>
+      </div>
+      <button class="icon-btn" onclick="abrirModalUsuario('${u.ID}')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+      <button class="icon-btn danger" onclick="delItem('Usuarios','${u.ID}','usuarios')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 // ══════════════════════════════════════════
@@ -1990,7 +2179,10 @@ function abrirModalEvento(id){
   abrirModal(e?'Editar Evento':'Novo Evento',`
     <div class="doc-field"><label>Descrição</label><input id="m-desc" value="${fmt(e?.Desc)}" placeholder="Audiência, prazo, reunião…"></div>
     <div class="form-row">
-      <div class="doc-field"><label>Cliente</label><select id="m-cli"><option value="">Geral</option>${cliOpts}</select></div>
+      <div class="doc-field"><label>Cliente</label><div style="display:flex;gap:6px;align-items:center">
+          <select id="m-cli" style="flex:1"><option value="">Geral</option>${cliOpts}</select>
+          <button type="button" class="btn sm" onclick="cadastroRapidoCliente('m-cli')" style="flex-shrink:0;white-space:nowrap">+ Novo</button>
+        </div></div>
       <div class="doc-field"><label>Tipo</label><select id="m-tipo"><option>Audiência</option><option>Prazo</option><option>Reunião</option><option>Protocolo</option><option>Outro</option></select></div>
     </div>
     <div class="form-row">
@@ -2068,44 +2260,61 @@ async function sincRadar(){
 // ══════════════════════════════════════════
 //  MODAIS — USUÁRIO
 // ══════════════════════════════════════════
-function abrirModalUsuario(){
-  abrirModal('Novo Usuário',`
-    <div class="doc-field"><label>Nome</label><input id="m-nome" placeholder="Nome completo"></div>
-    <div class="doc-field"><label>Cargo</label><input id="m-cargo" placeholder="Advogado, Estagiário…"></div>
-    <div class="doc-field"><label>E-mail</label><input id="m-email" placeholder="email@escritorio.com.br"></div>
-  `, salvarUsuario);
+function abrirModalUsuario(id){
+  const u = id ? DB.usuarios.find(x=>x.ID===id) : null;
+  const titulo = u ? 'Editar Usuário' : 'Novo Usuário';
+  const niveisOpts = ['admin','advogado','estagiario'].map(n=>`<option value="${n}" ${u&&USUARIOS_VALIDOS[u.Nome]?.nivel===n?'selected':''}>${NIVEIS[n]?.label||n}</option>`).join('');
+  abrirModal(titulo,`
+    <div class="form-row">
+      <div class="doc-field"><label>Nome*</label><input id="mu-nome" type="text" value="${u?u.Nome:''}" placeholder="Nome completo"></div>
+      <div class="doc-field"><label>Cargo</label><input id="mu-cargo" type="text" value="${u?u.Cargo:''}" placeholder="Ex: Advogado Sênior"></div>
+    </div>
+    <div class="doc-field"><label>E-mail*</label><input id="mu-email" type="email" value="${u?u.Email:''}" placeholder="email@exemplo.com"></div>
+    <div class="form-row">
+      <div class="doc-field"><label>Senha${u?' (deixe em branco para manter)':''}</label><input id="mu-senha" type="password" placeholder="${u?'Nova senha (opcional)':'Senha de acesso'}"></div>
+      <div class="doc-field"><label>Nível de acesso</label><select id="mu-nivel">${niveisOpts}</select></div>
+    </div>
+    <div style="background:var(--sf2);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--ink3);margin-top:4px">
+      <strong style="color:var(--jade)">Níveis:</strong> Administrador — acesso total · Advogado — sem config · Estagiário — sem excluir, sem financeiro
+    </div>`,
+  async ()=>{
+    const nome = document.getElementById('mu-nome').value.trim();
+    const email = document.getElementById('mu-email').value.trim();
+    const senha = document.getElementById('mu-senha').value;
+    const nivel = document.getElementById('mu-nivel').value;
+    const cargo = document.getElementById('mu-cargo').value.trim();
+    if(!nome||!email){ showToast('Nome e e-mail são obrigatórios'); return; }
+
+    // Atualizar USUARIOS_VALIDOS em memória
+    if(senha) {
+      USUARIOS_VALIDOS[nome] = {senha, nivel};
+    } else if(!USUARIOS_VALIDOS[nome]) {
+      showToast('Informe a senha para novo usuário'); return;
+    } else {
+      USUARIOS_VALIDOS[nome].nivel = nivel;
+    }
+
+    // Renomear chave se nome mudou
+    if(u && u.Nome !== nome){
+      const old = USUARIOS_VALIDOS[u.Nome];
+      if(old){ USUARIOS_VALIDOS[nome] = {...old, nivel}; delete USUARIOS_VALIDOS[u.Nome]; }
+    }
+
+    const payload = {
+      action: u ? 'updateUsuario' : 'saveUsuario',
+      id: u?.ID, nome, cargo, email
+    };
+    fecharModal();
+    showToast('Salvando…');
+    try{
+      const r = await fetch(API,{method:'POST',body:JSON.stringify(payload)});
+      const d = await r.json();
+      if(d.ok){ await loadData(); showToast('Usuário salvo!'); }
+      else showToast('Erro: '+(d.msg||''));
+    }catch(e){ showToast('Erro de conexão'); }
+  });
 }
 
-async function salvarUsuario(){
-  const payload={action:'saveUsuario',
-    nome:document.getElementById('m-nome').value,
-    cargo:document.getElementById('m-cargo').value,
-    email:document.getElementById('m-email').value,
-  };
-  fecharModal(); showToast('Salvando…');
-  await fetch(API,{method:'POST',body:JSON.stringify(payload)});
-  await loadData();
-}
-
-// ══════════════════════════════════════════
-//  DEL GENÉRICO
-// ══════════════════════════════════════════
-async function delItem(sheet,id,render){
-  if(!confirm('Confirmar exclusão?'))return;
-  const actionMap={Radar:'delRadar',Usuarios:'delUsuario'};
-  await fetch(API,{method:'POST',body:JSON.stringify({action:actionMap[sheet]||'del'+sheet,id})});
-  await loadData();
-}
-
-// ══════════════════════════════════════════
-//  CHECKLIST
-// ══════════════════════════════════════════
-const CHECKLIST_PADRAO = [
-  {area:'TRABALHISTA',itens:['Verificar ponto e horas extras','Contratos de trabalho atualizados','Revisão de políticas internas','FGTS e encargos em dia']},
-  {area:'TRIBUTÁRIO',itens:['Obrigações acessórias do mês','Revisão de notas fiscais','Simples Nacional / Regime tributário']},
-  {area:'SOCIETÁRIO',itens:['Atas de reunião atualizadas','Contrato social vigente','Livros societários']},
-  {area:'LGPD',itens:['Política de privacidade atualizada','Contratos de dados com fornecedores','Registro de tratamento de dados']},
-];
 
 function renderChecklist(){
   const cliId=document.getElementById('ck-cli').value;
@@ -2770,7 +2979,12 @@ function abrirModalProcesso(id){
     </div>
     <div class="form-row">
       <div class="doc-field"><label>Valor da Causa (R$)</label><input id="mp-valor" type="number" step="0.01" placeholder="0,00" value="${p?p.valorCausa||'':''}"></div>
-      <div class="doc-field"><label>Cliente vinculado</label><select id="mp-cli"><option value="">— Sem vínculo —</option>${co}</select></div>
+      <div class="doc-field"><label>Cliente vinculado</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="mp-cli" style="flex:1"><option value="">— Sem vínculo —</option>${co}</select>
+          <button type="button" class="btn sm" onclick="cadastroRapidoCliente('mp-cli')" style="flex-shrink:0;white-space:nowrap">+ Novo</button>
+        </div>
+      </div>
     </div>
     <div class="doc-field"><label>Partes (Autor vs Réu)</label><input id="mp-partes" placeholder="Ex: João Silva x Empresa ABC" value="${p?p.partes||'':''}"></div>
     <div class="form-row">
