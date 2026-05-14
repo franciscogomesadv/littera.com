@@ -942,8 +942,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 
     <div class="pg" id="pg-tarefas">
       <div class="filter-bar">
-        <button class="filter-btn on" onclick="filtrar('todas',this)">Todas</button>
-        <button class="filter-btn" onclick="filtrar('Pendente',this)">Pendentes</button>
+        <button class="filter-btn" onclick="filtrar('todas',this)">Todas</button>
+        <button class="filter-btn on" onclick="filtrar('Pendente',this)">Pendentes</button>
         <button class="filter-btn" onclick="filtrar('Em andamento',this)">Em andamento</button>
         <button class="filter-btn" onclick="filtrar('Urgente',this)">Urgentes</button>
         <button class="filter-btn" onclick="filtrar('Concluido',this)">Concluídas</button>
@@ -1133,11 +1133,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       <div id="proc-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px"></div>
       <div class="dash-sec">
         <div class="sh">
-          <div><span class="st">Meus Processos</span><div style="font-size:11px;color:var(--ink3);margin-top:1px">Cadastro manual + consulta DataJud (gratuito)</div></div>
-          <div class="sh-actions">
-            <input class="filter-input" id="proc-busca" placeholder="N&#186; processo ou parte..." style="width:180px" oninput="renderProcessos()">
+          <div><span class="st">Meus Processos</span><div style="font-size:11px;color:var(--ink3);margin-top:1px">Cadastro manual + consulta DataJud</div></div>
+          <div class="sh-actions" style="flex-wrap:wrap;gap:6px">
+            <input class="filter-input" id="proc-busca" placeholder="N&#186;, parte, cliente..." style="width:140px" oninput="renderProcessos()">
+            <select class="filter-sel" id="proc-vara-fil" onchange="renderProcessos()"><option value="">Todas as varas</option></select>
+            <select class="filter-sel" id="proc-cli-fil" onchange="renderProcessos()"><option value="">Todos os clientes</option></select>
             <select class="filter-sel" id="proc-status-fil" onchange="renderProcessos()"><option value="">Todos</option><option value="Ativo">Ativo</option><option value="Encerrado">Encerrado</option></select>
-            <button class="btn sm" onclick="sincTodosProcessos()">&#10227; Atualizar todos</button>
+            <select class="filter-sel" id="proc-ordem" onchange="renderProcessos()"><option value="novo">&#x2193; Mais novo</option><option value="antigo">&#x2191; Mais antigo</option></select>
+            <button class="btn sm" onclick="sincTodosProcessos()">&#10227; Atualizar</button>
           </div>
         </div>
         <div id="proc-lista" style="padding:4px 0"></div>
@@ -1233,15 +1236,24 @@ const NIVEIS = {
 };
 
 function verificarSenha(usuario, senha){
+  // Verificar overrides salvos
+  const overrides = JSON.parse(localStorage.getItem('littera_senhas')||'{}');
+  if(overrides[usuario]) return senha === overrides[usuario].senha;
   const u = USUARIOS_VALIDOS[usuario];
   if(!u) return false;
   return senha === u.senha;
 }
 
+function nivelUsuario(usuario){
+  const overrides = JSON.parse(localStorage.getItem('littera_senhas')||'{}');
+  if(overrides[usuario]) return overrides[usuario].nivel||'estagiario';
+  return USUARIOS_VALIDOS[usuario]?.nivel||'estagiario';
+}
+
 function nivelAtual(){
   if(!usuarioAtual) return NIVEIS.estagiario;
-  const u = USUARIOS_VALIDOS[usuarioAtual];
-  return NIVEIS[u?.nivel || 'estagiario'] || NIVEIS.estagiario;
+  const nivel = nivelUsuario(usuarioAtual);
+  return NIVEIS[nivel] || NIVEIS.estagiario;
 }
 
 function podeExcluir(){ return nivelAtual().podeExcluir; }
@@ -1250,7 +1262,7 @@ function podeVerUsuarios(){ return nivelAtual().verUsuarios; }
 
 let DB = {clientes:[],tarefas:[],calendario:[],radar:[],usuarios:[],checklistItens:[],checklistStatus:[]};
 let usuarioAtual = null;
-let filAtual = 'todas';
+let filAtual = 'Pendente';
 let calViewAtual = 'semana';
 let calOffset = 0;
 let docAtual = 'assessoria';
@@ -1490,7 +1502,15 @@ function abrirModalLead(id){
     if(l){ const idx=DB.leads.findIndex(x=>x.id===l.id); DB.leads[idx]=dados; }
     else DB.leads.push(dados);
     localStorage.setItem('littera_leads',JSON.stringify(DB.leads));
-    fecharModal(); renderCRM(); showToast(l?'Lead atualizado!':'Lead cadastrado!');
+    fecharModal(); renderCRM();
+    // Sync com API
+    const _lead = id ? DB.leads.find(x=>x.id===id) : DB.leads[DB.leads.length-1];
+    if(_lead){
+      fetch(API,{method:'POST',body:JSON.stringify({action: id?'updateLead':'saveLead', ..._lead})})
+        .then(r=>r.json())
+        .then(d=>showToast(d.ok?(id?'Lead atualizado!':'Lead cadastrado!'):'Salvo localmente'))
+        .catch(()=>showToast(id?'Lead atualizado!':'Lead cadastrado!'));
+    }
   });
 }
 
@@ -1543,7 +1563,119 @@ function converterLeadEmCliente(id){
   });
 }
 
+
+function imprimirRelatorio(){
+  const conteudo = document.getElementById('rel-container');
+  if(!conteudo || !conteudo.innerHTML.trim()){ showToast('Gere o relatório primeiro'); return; }
+  const w = window.open('', '_blank', 'width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Relatório — Littera</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a2620;padding:32px}
+      .rel-header{border-bottom:2px solid #2D4A3E;padding-bottom:16px;margin-bottom:20px}
+      .rel-logo{font-size:22px;font-weight:700;color:#2D4A3E;letter-spacing:1px}
+      .rel-sub{font-size:12px;color:#7A9488;margin-top:4px}
+      .rel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+      .rel-stat{background:#F2F5F3;border-radius:8px;padding:12px;text-align:center}
+      .rel-stat-val{font-size:22px;font-weight:700;color:#2D4A3E}
+      .rel-stat-val.green{color:#1D6F42}.rel-stat-val.red{color:#8B1D2A}
+      .rel-stat-lbl{font-size:11px;color:#7A9488;margin-top:2px}
+      .rel-section{margin-bottom:20px}
+      .rel-section-title{font-size:13px;font-weight:600;color:#2D4A3E;border-bottom:1px solid #e0e8e4;padding-bottom:6px;margin-bottom:10px}
+      .rel-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid #f0f4f2}
+      .rel-item-dot{width:7px;height:7px;border-radius:50%;background:#2D4A3E;flex-shrink:0;margin-top:4px}
+      .rel-item-body{flex:1;font-size:12px}
+      .rel-item-sub{font-size:11px;color:#7A9488;margin-top:2px}
+      button{display:none}
+      @media print{body{padding:16px}}
+
+.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px}
+.elc:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade,#1E3529));border-color:var(--jade,#1E3529);cursor:default}
+.elc-highlight:hover{transform:none}
+.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.elc-icon.amb{background:rgba(245,158,11,.12)}.elc-icon.amb svg{stroke:var(--amb,#f59e0b)}
+.elc-icon.red{background:rgba(220,38,38,.12)}.elc-icon.red svg{stroke:var(--red,#dc2626)}
+.elc-icon.jade{background:rgba(30,53,41,.12)}.elc-icon.jade svg{stroke:var(--jade,#1E3529)}
+.elc-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.elc-right{flex:1;min-width:0}
+.elc-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px}
+.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.elc-sub{font-size:11px;color:var(--ink3)}
+.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important}
+.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px}
+.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px}
+.ti-item:hover{background:var(--sf2)}
+.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2}
+.ti-amb{color:var(--amb,#f59e0b)}.ti-red{color:var(--red,#dc2626)}.ti-grn{color:var(--grn,#16a34a)}
+.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap}
+.nav-badge{margin-left:auto;background:var(--red,#dc2626);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center}
+.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink)}
+@media(max-width:1100px){.elaw-cards{grid-template-columns:repeat(2,1fr)}}
+
+    </style>
+  </head><body>
+    ${conteudo.innerHTML}
+  </body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.focus(); w.print(); }, 500);
+}
+
+function imprimirRelatorio(){
+  const conteudo = document.getElementById('rel-container');
+  if(!conteudo){ showToast('Nenhum relatório gerado'); return; }
+  const html = conteudo.innerHTML;
+  const cli = document.getElementById('rel-cli');
+  const nomeCliente = cli ? cli.options[cli.selectedIndex]?.text : 'Relatório';
+  const janela = window.open('','_blank','width=800,height=900');
+  janela.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8">
+    <title>Relatório — ${nomeCliente}</title>
+    <style>
+      body{font-family:'Segoe UI',Arial,sans-serif;padding:30px;color:#1A2620;background:#fff;max-width:800px;margin:0 auto}
+      .rel-header{margin-bottom:24px;border-bottom:2px solid #1E3529;padding-bottom:16px}
+      .rel-logo{font-size:20px;font-weight:700;color:#1E3529;margin-bottom:4px}
+      .rel-subtitle{font-size:13px;color:#7A9488}
+      .rel-title{font-size:22px;font-weight:600;color:#1A2620;margin:16px 0 4px}
+      .rel-period{font-size:13px;color:#7A9488;margin-bottom:16px}
+      .rel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+      .rel-stat{text-align:center;padding:12px;background:#F2F5F3;border-radius:8px}
+      .rel-stat-val{font-size:22px;font-weight:700;color:#1E3529}
+      .rel-stat-val.green{color:#1D6F42}
+      .rel-stat-lbl{font-size:11px;color:#7A9488;margin-top:2px}
+      .rel-section{margin-bottom:20px}
+      .rel-section-title{font-size:14px;font-weight:600;color:#1E3529;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #e0e8e4}
+      .rel-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0f5f2}
+      .rel-item-dot{width:8px;height:8px;border-radius:50%;background:#1E3529;margin-top:4px;flex-shrink:0}
+      .rel-item-body{font-size:13px;color:#1A2620}
+      .rel-item-sub{font-size:11px;color:#7A9488;margin-top:2px}
+      .tag{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:500}
+      @media print{body{padding:15px}button{display:none}}
+    </style>
+  </head><body>
+    <div class="rel-header">
+      <div class="rel-logo">Littera — Sistema Jurídico</div>
+      <div class="rel-subtitle">Francisco Gomes Advocacia · OAB SP 363.517</div>
+    </div>
+    ${html}
+    <div style="margin-top:30px;padding-top:12px;border-top:1px solid #e0e8e4;font-size:11px;color:#7A9488;text-align:center">
+      Gerado em ${new Date().toLocaleString('pt-BR')} · Littera Sistema Jurídico
+    </div>
+  </body></html>`);
+  janela.document.close();
+  setTimeout(()=>janela.print(), 500);
+}
+
 window.onload = () => {
+  // Restaurar senhas customizadas salvas
+  const senhasCustom = localStorage.getItem('littera_senhas');
+  if(senhasCustom) try{
+    const sc = JSON.parse(senhasCustom);
+    Object.keys(sc).forEach(nome=>{ if(USUARIOS_VALIDOS[nome]) Object.assign(USUARIOS_VALIDOS[nome], sc[nome]); });
+  }catch(e){}
   const u = sessionStorage.getItem('littera_user');
   if(u){ usuarioAtual = u; mostrarApp(); loadData(); }
 };
@@ -1614,6 +1746,19 @@ async function loadData(){
       DB.tarefas.forEach(t => camposTarefa.forEach(f => { if(t[f]) t[f]=normalizarData(t[f]); }));
       DB.calendario.forEach(e => camposCalend.forEach(f => { if(e[f]) e[f]=normalizarData(e[f]); }));
       DB.clientes.forEach(cl => camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); }));
+      // Leads CRM: mesclar API + localStorage
+      const localLeads = JSON.parse(localStorage.getItem('littera_leads')||'[]');
+      if(d.leads && d.leads.length){
+        DB.leads = d.leads.map(l=>({
+          id: l.ID||l.id, nome: l.Nome||l.nome, setor: l.Setor||l.setor,
+          etapa: l.Etapa||l.etapa||'contato', contato: l.Contato||l.contato,
+          valor: l.Valor||l.valor, origem: l.Origem||l.origem,
+          obs: l.Obs||l.obs, criado: l.Criado||l.criado
+        }));
+        localStorage.setItem('littera_leads', JSON.stringify(DB.leads));
+      } else if(localLeads.length){
+        DB.leads = localLeads;
+      }
       // Processos: mesclar API + localStorage (localStorage tem campos extras como grau, vara, etc.)
       const localProcs = JSON.parse(localStorage.getItem('littera_processos')||'[]');
       if(DB.processos&&DB.processos.length){
@@ -1676,7 +1821,7 @@ const PAGE_ACTIONS = {
   calendario: () => `<button class="btn-topbar primary" onclick="abrirModalEvento()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo evento</button>`,
   radar: () => `<button class="btn-topbar" onclick="sincRadar()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Sincronizar radar</button><button class="btn-topbar primary" onclick="abrirModalRadar()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova norma</button>`,
   usuarios: () => `<button class="btn-topbar primary" onclick="abrirModalUsuario()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo usuário</button>`,
-  relatorio: () => `<button class="btn-topbar" onclick="window.print()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir</button>`,
+  relatorio: () => `<button class="btn-topbar" onclick="imprimirRelatorio()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir</button>`,
   maturidade: () => `<button class="btn-topbar" onclick="window.print()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir</button>`,
   documentos: () => `<button class="btn-topbar" onclick="imprimirDocumento()"><svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Imprimir documento</button>`,
 };
@@ -2054,12 +2199,23 @@ function renderUsuarios(){
 // ══════════════════════════════════════════
 //  MODAIS — TAREFA
 // ══════════════════════════════════════════
-function abrirModalTarefa(id){
+function abrirModalTarefa(id, cliIdPre, cliNomePre, procIdPre){
   const t = id ? DB.tarefas.find(x=>x.ID===id) : null;
-  const cliOpts = DB.clientes.filter(c=>c.Status==='Ativo').map(c=>`<option value="${c.ID}" data-nome="${c.Nome}" ${t&&t.CliID===c.ID?'selected':''}>${c.Nome}</option>`).join('');
+  // Se veio de processo, pré-selecionar cliente do processo
+  let cliPreSel = cliIdPre||'';
+  if(!cliPreSel && procIdPre){
+    carregarProcessosLocais();
+    const proc = DB.processos.find(p=>(p.id||p.ID)===procIdPre);
+    if(proc){
+      const cliNome = proc.cliente||proc.Cliente||'';
+      const cliObj = DB.clientes.find(cl=>cl.Nome===cliNome);
+      if(cliObj) cliPreSel = cliObj.ID;
+    }
+  }
+  const cliOpts = DB.clientes.filter(c=>c.Status==='Ativo').map(c=>`<option value="${c.ID}" data-nome="${c.Nome}" ${(t&&t.CliID===c.ID)||(c.ID===cliPreSel)?'selected':''}>${c.Nome}</option>`).join('');
   const usOpts = DB.usuarios.map(u=>`<option ${t&&t.Resp===u.Nome?'selected':''}>${u.Nome}</option>`).join('');
   abrirModal(t?'Editar Tarefa':'Nova Tarefa',`
-    <div class="doc-field"><label>Título</label><input id="m-titulo" value="${fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
+    <div class="doc-field"><label>Título</label><input id="m-titulo" value="${_titulo!==undefined?_titulo:fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
     <div class="form-row">
       <div class="doc-field"><label>Cliente</label>
         <div style="display:flex;gap:6px;align-items:center">
@@ -2285,20 +2441,16 @@ function abrirModalUsuario(id){
     const cargo = document.getElementById('mu-cargo').value.trim();
     if(!nome||!email){ showToast('Nome e e-mail são obrigatórios'); return; }
 
-    // Atualizar USUARIOS_VALIDOS em memória
-    if(senha) {
-      USUARIOS_VALIDOS[nome] = {senha, nivel};
-    } else if(!USUARIOS_VALIDOS[nome]) {
-      showToast('Informe a senha para novo usuário'); return;
-    } else {
-      USUARIOS_VALIDOS[nome].nivel = nivel;
-    }
-
-    // Renomear chave se nome mudou
-    if(u && u.Nome !== nome){
-      const old = USUARIOS_VALIDOS[u.Nome];
-      if(old){ USUARIOS_VALIDOS[nome] = {...old, nivel}; delete USUARIOS_VALIDOS[u.Nome]; }
-    }
+    // Salvar senha/nível no localStorage (persiste entre recargas)
+    const overrides = JSON.parse(localStorage.getItem('littera_senhas')||'{}');
+    const nomeOld = u?.Nome || nome;
+    const senhaAtual = overrides[nomeOld]?.senha || USUARIOS_VALIDOS[nomeOld]?.senha || '';
+    if(!senha && !senhaAtual){ showToast('Informe a senha para novo usuário'); return; }
+    const senhaFinal = senha || senhaAtual;
+    if(u && u.Nome !== nome){ delete overrides[u.Nome]; }
+    overrides[nome] = {senha: senhaFinal, nivel};
+    localStorage.setItem('littera_senhas', JSON.stringify(overrides));
+    USUARIOS_VALIDOS[nome] = {senha: senhaFinal, nivel};
 
     const payload = {
       action: u ? 'updateUsuario' : 'saveUsuario',
@@ -2431,7 +2583,7 @@ function renderRelatorio(){
             '</div></div>'
           ).join('')+'</div>';
       })()}
-      <button class="btn sm" onclick="window.print()">🖨 Imprimir</button>
+      <button class="btn sm" onclick="imprimirRelatorio()">🖨 Imprimir / PDF</button>
     </div>
   </div>`;
 }
@@ -2876,21 +3028,48 @@ function renderProcessos(){
   carregarProcessosLocais();
   const busca=(document.getElementById('proc-busca')?.value||'').toLowerCase();
   const sf=document.getElementById('proc-status-fil')?.value||'';
+  const varaFil=document.getElementById('proc-vara-fil')?.value||'';
+  const cliFil=document.getElementById('proc-cli-fil')?.value||'';
+  const ordem=document.getElementById('proc-ordem')?.value||'novo';
+
+  // Popular filtros de vara e cliente
+  const varaSelect=document.getElementById('proc-vara-fil');
+  if(varaSelect&&varaSelect.options.length<=1){
+    const varas=[...new Set(DB.processos.map(p=>p.vara||'').filter(v=>v))];
+    varas.forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;varaSelect.appendChild(op);});
+  }
+  const cliSelect=document.getElementById('proc-cli-fil');
+  if(cliSelect&&cliSelect.options.length<=1){
+    const clis=[...new Set(DB.processos.map(p=>p.cliente||'').filter(v=>v))];
+    clis.forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;cliSelect.appendChild(op);});
+  }
+
   let lista=[...DB.processos];
   if(busca) lista=lista.filter(p=>(p.numero||'').toLowerCase().includes(busca)||(p.partes||'').toLowerCase().includes(busca)||(p.cliente||'').toLowerCase().includes(busca));
   if(sf) lista=lista.filter(p=>sf==='Ativo'?p.status==='Ativo':(p.status||'').includes('Encerrado'));
+  if(varaFil) lista=lista.filter(p=>p.vara===varaFil);
+  if(cliFil) lista=lista.filter(p=>p.cliente===cliFil);
+
+  // Ordenar por data de autuação
+  lista.sort((a,b)=>{
+    const da=a.autuacao?new Date(a.autuacao.split('/').reverse().join('-')):new Date(a.cadastradoEm||0);
+    const db2=b.autuacao?new Date(b.autuacao.split('/').reverse().join('-')):new Date(b.cadastradoEm||0);
+    return ordem==='novo' ? db2-da : da-db2;
+  });
+
   const se=document.getElementById('proc-stats');
   if(se) se.innerHTML=`
     <div class="stat-card c1"><div class="stat-num">${lista.length}</div><div class="stat-lbl">Total</div></div>
     <div class="stat-card c4"><div class="stat-num">${lista.filter(p=>p.status==='Ativo').length}</div><div class="stat-lbl">Ativos</div></div>
     <div class="stat-card c3"><div class="stat-num">${lista.filter(p=>p.status&&p.status.includes('Encerrado')).length}</div><div class="stat-lbl">Encerrados</div></div>
     <div class="stat-card c2"><div class="stat-num">${lista.filter(p=>{if(!p.ultimaMov)return true;return(Date.now()-new Date(p.ultimaMov).getTime())>60*86400000;}).length}</div><div class="stat-lbl">Sem mov. 60+</div></div>`;
+
   const el=document.getElementById('proc-lista'); if(!el) return;
   if(!lista.length){
     el.innerHTML=`<div class="empty">
       <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
-      <div class="empty-title">Nenhum processo cadastrado</div>
-      <div class="empty-sub">Cadastre o número CNJ.</div>
+      <div class="empty-title">Nenhum processo encontrado</div>
+      <div class="empty-sub">Ajuste os filtros ou cadastre um novo processo.</div>
       <button class="empty-action" onclick="abrirModalProcesso()">+ Cadastrar processo</button>
     </div>`;
     return;
@@ -2898,12 +3077,12 @@ function renderProcessos(){
   const tagSt=s=>{if(s==='Ativo')return 'ok';if(s&&s.includes('Encerrado'))return 'gy';if(s==='Suspenso')return 'alt';return 'nor';};
   el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
     <thead><tr style="border-bottom:2px solid var(--br2)">
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Nº Processo</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tipo/Área</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">N&#186; Processo</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Tipo/&#193;rea</th>
       <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Vara</th>
       <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Partes</th>
       <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Cliente</th>
-      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Valor</th>
+      <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Autua&#231;&#227;o</th>
       <th style="text-align:left;padding:8px 12px;font-size:10px;color:var(--ink3)">Status</th>
       <th></th>
     </tr></thead>
@@ -2914,15 +3093,23 @@ function renderProcessos(){
         <td style="padding:9px 12px;font-size:11px;color:var(--ink3);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.vara||'—'}</td>
         <td style="padding:9px 12px;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(p.partes||'—').replace(/</g,'&lt;')}</td>
         <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.cliente||'—'}</td>
-        <td style="padding:9px 12px;font-size:11px;color:var(--ink3)">${p.valorCausa?'R$ '+parseFloat(p.valorCausa).toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</td>
+        <td style="padding:9px 12px;font-size:11px;color:var(--ink3);font-family:monospace">${p.autuacao||'—'}</td>
         <td style="padding:9px 12px"><span class="tag ${tagSt(p.status)}">${p.status||'Ativo'}</span></td>
         <td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">
+          <button class="icon-btn" onclick="abrirModalTarefaProcesso('${p.id||''}','${(p.numero||'').replace(/'/g,'')}','${(p.cliente||'').replace(/'/g,'')}')" title="Nova tarefa"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="icon-btn" onclick="abrirModalProcesso('${p.id||''}')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           <button class="icon-btn" onclick="consultarDataJudById('${p.id||''}')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
           <button class="icon-btn danger" onclick="delProcesso('${p.id||''}')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
         </td>
       </tr>`).join('')}
     </tbody></table></div>`;
+}
+
+function abrirModalTarefaProcesso(procId, numero, cliente){
+  carregarProcessosLocais();
+  const proc = DB.processos.find(p=>p.id===procId);
+  const cliId = proc ? DB.clientes.find(cl=>cl.Nome===proc.cliente)?.ID||'' : '';
+  abrirModalTarefa(null, cliId, '[Proc. '+numero+'] ');
 }
 
 
@@ -3161,6 +3348,51 @@ function marcarPubTratada(id){
   if(p){ p.status='tratada'; localStorage.setItem('littera_publicacoes',JSON.stringify(DB.publicacoes)); renderPublicacoes(); }
 }
 
+async function sincPublicacoes(){
+  carregarProcessosLocais(); carregarPublicacoesLocais();
+  const cfg = carregarConfigMonitor();
+  const btn = document.getElementById('btn-sinc-pub');
+  if(!cfg.oab && !DB.processos.length){ showToast('Configure sua OAB ou cadastre processos'); return; }
+  if(btn){ btn.textContent='⟳ Consultando…'; btn.disabled=true; }
+  showToast('Consultando DataJud…');
+  let novas=0;
+  const ex = new Set(DB.publicacoes.map(p=>p.id));
+  for(const proc of DB.processos.slice(0,10)){
+    if(!proc.numero && !proc.Numero) continue;
+    const num = proc.numero || proc.Numero;
+    try{
+      const r = await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'ApiKey cDZHYzlZa0JadVREZDJCendOMFg6MusIPIWe8Mx4'},
+        body:JSON.stringify({query:{match:{numeroProcesso:num}},size:1})
+      });
+      const d = await r.json();
+      const hits = d?.hits?.hits||[];
+      if(hits.length){
+        (hits[0]._source.movimentos||[]).slice(-5).forEach(m=>{
+          const id = num+'_'+(m.dataHora||Date.now());
+          if(!ex.has(id)){
+            DB.publicacoes.push({
+              id, numero:num, tipo:'publicação',
+              data: m.dataHora ? new Date(m.dataHora).toLocaleDateString('pt-BR') : '',
+              conteudo: m.nome||m.descricao||'Movimentação',
+              cliente: proc.cliente||proc.Cliente||'',
+              status:'nao_tratada'
+            });
+            ex.add(id); novas++;
+          }
+        });
+      }
+      await new Promise(r=>setTimeout(r,600));
+    }catch(e){}
+  }
+  localStorage.setItem('littera_publicacoes', JSON.stringify(DB.publicacoes));
+  renderPublicacoes();
+  if(btn){ btn.textContent='⟳ Buscar DataJud'; btn.disabled=false; }
+  showToast(novas>0 ? novas+' nova(s) publicação(ões) encontrada(s)' : 'Consultado — sem novidades');
+}
+
+
 function diasUteisApos(dataBase, dias){
   const feriados=['01/01','21/04','01/05','07/09','12/10','02/11','15/11','25/12'];
   let d = new Date(dataBase); d.setHours(12,0,0,0);
@@ -3360,37 +3592,8 @@ function renderExpediente(){
   </table>`;
 }
 
-// ── CSS dos novos componentes ──
-(function(){
-  const s=document.createElement('style');
-  s.textContent=`
-.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px}
-.elc:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
-.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade,#1E3529));border-color:var(--jade,#1E3529);cursor:default}
-.elc-highlight:hover{transform:none}
-.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.elc-icon.amb{background:rgba(245,158,11,.12)}.elc-icon.amb svg{stroke:var(--amb,#f59e0b)}
-.elc-icon.red{background:rgba(220,38,38,.12)}.elc-icon.red svg{stroke:var(--red,#dc2626)}
-.elc-icon.jade{background:rgba(30,53,41,.12)}.elc-icon.jade svg{stroke:var(--jade,#1E3529)}
-.elc-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
-.elc-right{flex:1;min-width:0}
-.elc-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px}
-.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
-.elc-sub{font-size:11px;color:var(--ink3)}
-.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important}
-.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px}
-.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px}
-.ti-item:hover{background:var(--sf2)}
-.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2}
-.ti-amb{color:var(--amb,#f59e0b)}.ti-red{color:var(--red,#dc2626)}.ti-grn{color:var(--grn,#16a34a)}
-.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap}
-.nav-badge{margin-left:auto;background:var(--red,#dc2626);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center}
-.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink)}
-@media(max-width:1100px){.elaw-cards{grid-template-columns:repeat(2,1fr)}}
-`;
-  document.head.appendChild(s);
-})();
+// CSS movido para o bloco <style>
+
 
 </script>
 </body>
