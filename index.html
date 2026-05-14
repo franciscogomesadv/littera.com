@@ -1596,11 +1596,11 @@ function imprimirRelatorio(){
 .elc:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
 .elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade,#1E3529));border-color:var(--jade,#1E3529);cursor:default}
 .elc-highlight:hover{transform:none}
-.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
 .elc-icon.amb{background:rgba(245,158,11,.12)}.elc-icon.amb svg{stroke:var(--amb,#f59e0b)}
 .elc-icon.red{background:rgba(220,38,38,.12)}.elc-icon.red svg{stroke:var(--red,#dc2626)}
 .elc-icon.jade{background:rgba(30,53,41,.12)}.elc-icon.jade svg{stroke:var(--jade,#1E3529)}
-.elc-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.elc-icon svg{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;stroke:currentColor;fill:none;stroke-width:1.8;display:block}
 .elc-right{flex:1;min-width:0}
 .elc-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px}
 .elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
@@ -3252,7 +3252,7 @@ async function sincTodosProcessos(){
   carregarProcessosLocais();
   if(!DB.processos.length){ showToast('Nenhum processo cadastrado'); return; }
   showToast('Atualizando '+DB.processos.length+' processo(s)…');
-  for(const p of DB.processos){ await consultarDataJud(p.numero,p.id); await new Promise(r=>setTimeout(r,600)); }
+  for(const p of DB.processos){ await consultarDataJud(p.numero,p.id); await new Promise(r=>setTimeout(r,800)); }
   showToast('Processos atualizados!');
 }
 
@@ -3357,9 +3357,10 @@ async function sincPublicacoes(){
   showToast('Consultando DataJud…');
   let novas=0;
   const ex = new Set(DB.publicacoes.map(p=>p.id));
-  for(const proc of DB.processos.slice(0,10)){
+  for(const proc of DB.processos){
     if(!proc.numero && !proc.Numero) continue;
     const num = proc.numero || proc.Numero;
+    showToast('Consultando '+num+' ('+( DB.processos.indexOf(proc)+1)+'/'+DB.processos.length+')…');
     try{
       const r = await fetch('https://api-publica.datajud.cnj.jus.br/api_publica_tjsp/_search',{
         method:'POST',
@@ -3383,7 +3384,7 @@ async function sincPublicacoes(){
           }
         });
       }
-      await new Promise(r=>setTimeout(r,600));
+      await new Promise(r=>setTimeout(r,800));
     }catch(e){}
   }
   localStorage.setItem('littera_publicacoes', JSON.stringify(DB.publicacoes));
