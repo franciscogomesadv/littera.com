@@ -578,6 +578,36 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 .empty svg{width:28px;height:28px;margin:0 auto 8px;display:block;opacity:.3;stroke:var(--ink3);fill:none;stroke-width:1.5;}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--jade-dk);color:#fff;padding:10px 18px;border-radius:9px;font-size:12px;font-weight:500;z-index:400;box-shadow:var(--shadow-md);border:1px solid var(--gold-border);}
 
+
+/* ══════════════════════════════════════════
+   DASHBOARD — eLAW CARDS
+══════════════════════════════════════════ */
+.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px;}
+.elc:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade-dk));border-color:var(--jade-dk);cursor:default;}
+.elc-highlight:hover{transform:none;}
+.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.elc-icon.amb{background:rgba(245,158,11,.12);}.elc-icon.amb svg{stroke:var(--amb);}
+.elc-icon.red{background:rgba(139,29,42,.10);}.elc-icon.red svg{stroke:var(--red);}
+.elc-icon.jade{background:rgba(45,74,62,.10);}.elc-icon.jade svg{stroke:var(--jade);}
+.elc-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;display:block;}
+.elc-right{flex:1;min-width:0;}
+.elc-num{font-size:30px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;}
+.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.elc-sub{font-size:11px;color:var(--ink3);}
+.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important;}
+
+/* ── Topbar indicators ── */
+.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px;}
+.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px;}
+.ti-item:hover{background:var(--sf2);}
+.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2;}
+.ti-amb{color:var(--amb);}.ti-red{color:var(--red);}.ti-grn{color:var(--grn);}
+.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center;}
+.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink);}
+
 /* ══════════════════════════════════════════
    PRINT & RESPONSIVE
 ══════════════════════════════════════════ */
@@ -596,6 +626,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   #exp-cards{grid-template-columns:repeat(2,1fr);}
 }
 
+@media(max-width:1100px){
+  .elaw-cards{grid-template-columns:repeat(2,1fr);}
+}
+
 @media(max-width:900px){
   .sidebar{width:56px;}
   .sidebar .logo-text,.sidebar .logo-sub,.sidebar .nav-label,.sidebar .nav-item span,.sidebar .user-name,.sidebar .user-oab,.sidebar .sync-btn span,.sidebar .nav-item.future::after{display:none;}
@@ -609,12 +643,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .doc-types{grid-template-columns:repeat(3,1fr);}
   .form-row,.form-row3{grid-template-columns:1fr;}
   .dash-grid{grid-template-columns:1fr;}
+  .elaw-cards{grid-template-columns:1fr;}
 }
 </style>
-<style id="littera-critical">
-.elc-icon{overflow:hidden!important;width:40px!important;height:40px!important;flex-shrink:0!important}
-.elc-icon svg{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;display:block!important;flex-shrink:0!important}
-</style>
+
 </head>
 <body>
 
@@ -1269,39 +1301,25 @@ let usuarioAtual = null;
 
 const CHECKLIST_PADRAO = [
   { area: 'TRABALHISTA', itens: [
-    'Registro em CTPS atualizado',
-    'Contratos de trabalho arquivados',
-    'PPP e LTCAT atualizados',
-    'eSocial em dia',
-    'FGTS recolhido regularmente',
-    'Laudos NR-07 e NR-09 vigentes',
-    'Acordo de compensação de horas registrado',
-    'Regulamento interno atualizado'
+    'Registro em CTPS atualizado','Contratos de trabalho arquivados','PPP e LTCAT atualizados',
+    'eSocial em dia','FGTS recolhido regularmente','Laudos NR-07 e NR-09 vigentes',
+    'Acordo de compensação de horas registrado','Regulamento interno atualizado'
   ]},
   { area: 'TRIBUTÁRIO', itens: [
-    'DCTF entregue no prazo',
-    'ECF / ECD transmitidas',
-    'SPED Fiscal em dia',
+    'DCTF entregue no prazo','ECF / ECD transmitidas','SPED Fiscal em dia',
     'Certidões negativas válidas (Federal, Estadual, Municipal)',
-    'Simples Nacional ou Lucro Presumido regularizado',
-    'ISS/ICMS recolhidos',
-    'Parcelamentos em dia'
+    'Simples Nacional ou Lucro Presumido regularizado','ISS/ICMS recolhidos','Parcelamentos em dia'
   ]},
   { area: 'SOCIETÁRIO', itens: [
-    'Contrato social atualizado na Junta',
-    'Ata de eleição de administrador vigente',
-    'Livros societários escriturados',
-    'Certidão de regularidade da Junta Comercial',
-    'Acordo de sócios arquivado (se houver)',
-    'Marca registrada no INPI (se aplicável)'
+    'Contrato social atualizado na Junta','Ata de eleição de administrador vigente',
+    'Livros societários escriturados','Certidão de regularidade da Junta Comercial',
+    'Acordo de sócios arquivado (se houver)','Marca registrada no INPI (se aplicável)'
   ]},
   { area: 'LGPD', itens: [
-    'Política de privacidade publicada',
-    'DPO (encarregado) indicado',
+    'Política de privacidade publicada','DPO (encarregado) indicado',
     'Mapeamento de dados pessoais realizado',
     'Contratos com fornecedores incluem cláusula LGPD',
-    'Canal de atendimento ao titular de dados ativo',
-    'Registro de incidentes implantado'
+    'Canal de atendimento ao titular de dados ativo','Registro de incidentes implantado'
   ]}
 ];
 let filAtual = 'Pendente';
@@ -2206,7 +2224,7 @@ function abrirModalTarefa(id, cliIdPre, cliNomePre, procIdPre){
   const cliOpts = DB.clientes.filter(c=>c.Status==='Ativo').map(c=>`<option value="${c.ID}" data-nome="${c.Nome}" ${(t&&t.CliID===c.ID)||(c.ID===cliPreSel)?'selected':''}>${c.Nome}</option>`).join('');
   const usOpts = DB.usuarios.map(u=>'<option '+(t&&t.Resp===u.Nome?'selected':'')+'>'+u.Nome+'</option>').join('');
   abrirModal(t?'Editar Tarefa':'Nova Tarefa',`
-    <div class="doc-field"><label>Título</label><input id="m-titulo" value="${_titulo!==undefined?_titulo:fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
+    <div class="doc-field"><label>Título</label><input id="m-titulo" value="${fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
     <div class="form-row">
       <div class="doc-field"><label>Cliente</label>
         <div style="display:flex;gap:6px;align-items:center">
@@ -2462,16 +2480,13 @@ function abrirModalUsuario(id){
 function renderChecklist(){
   const cliId=document.getElementById('ck-cli').value;
   const mesSel=document.getElementById('ck-mes');
-  // Garantir que ck-mes esteja populado antes de usar
   if(mesSel && mesSel.options.length===0){
     const agora=new Date();
     for(let i=0;i<12;i++){
       const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);
       const o=document.createElement('option');
       o.value=d.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
-      o.textContent=o.value;
-      if(i===0)o.selected=true;
-      mesSel.appendChild(o);
+      o.textContent=o.value; if(i===0)o.selected=true; mesSel.appendChild(o);
     }
   }
   const mes=mesSel ? mesSel.value : new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
