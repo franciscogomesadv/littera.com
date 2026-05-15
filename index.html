@@ -1266,6 +1266,44 @@ function podeVerUsuarios(){ return nivelAtual().verUsuarios; }
 
 let DB = {clientes:[],tarefas:[],calendario:[],radar:[],usuarios:[],checklistItens:[],checklistStatus:[]};
 let usuarioAtual = null;
+
+const CHECKLIST_PADRAO = [
+  { area: 'TRABALHISTA', itens: [
+    'Registro em CTPS atualizado',
+    'Contratos de trabalho arquivados',
+    'PPP e LTCAT atualizados',
+    'eSocial em dia',
+    'FGTS recolhido regularmente',
+    'Laudos NR-07 e NR-09 vigentes',
+    'Acordo de compensação de horas registrado',
+    'Regulamento interno atualizado'
+  ]},
+  { area: 'TRIBUTÁRIO', itens: [
+    'DCTF entregue no prazo',
+    'ECF / ECD transmitidas',
+    'SPED Fiscal em dia',
+    'Certidões negativas válidas (Federal, Estadual, Municipal)',
+    'Simples Nacional ou Lucro Presumido regularizado',
+    'ISS/ICMS recolhidos',
+    'Parcelamentos em dia'
+  ]},
+  { area: 'SOCIETÁRIO', itens: [
+    'Contrato social atualizado na Junta',
+    'Ata de eleição de administrador vigente',
+    'Livros societários escriturados',
+    'Certidão de regularidade da Junta Comercial',
+    'Acordo de sócios arquivado (se houver)',
+    'Marca registrada no INPI (se aplicável)'
+  ]},
+  { area: 'LGPD', itens: [
+    'Política de privacidade publicada',
+    'DPO (encarregado) indicado',
+    'Mapeamento de dados pessoais realizado',
+    'Contratos com fornecedores incluem cláusula LGPD',
+    'Canal de atendimento ao titular de dados ativo',
+    'Registro de incidentes implantado'
+  ]}
+];
 let filAtual = 'Pendente';
 let calViewAtual = 'semana';
 let calOffset = 0;
@@ -1567,66 +1605,6 @@ function converterLeadEmCliente(id){
   });
 }
 
-
-function imprimirRelatorio(){
-  const conteudo = document.getElementById('rel-container');
-  if(!conteudo || !conteudo.innerHTML.trim()){ showToast('Gere o relatório primeiro'); return; }
-  const w = window.open('', '_blank', 'width=900,height=700');
-  w.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <title>Relatório — Littera</title>
-    <style>
-      *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#1a2620;padding:32px}
-      .rel-header{border-bottom:2px solid #2D4A3E;padding-bottom:16px;margin-bottom:20px}
-      .rel-logo{font-size:22px;font-weight:700;color:#2D4A3E;letter-spacing:1px}
-      .rel-sub{font-size:12px;color:#7A9488;margin-top:4px}
-      .rel-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-      .rel-stat{background:#F2F5F3;border-radius:8px;padding:12px;text-align:center}
-      .rel-stat-val{font-size:22px;font-weight:700;color:#2D4A3E}
-      .rel-stat-val.green{color:#1D6F42}.rel-stat-val.red{color:#8B1D2A}
-      .rel-stat-lbl{font-size:11px;color:#7A9488;margin-top:2px}
-      .rel-section{margin-bottom:20px}
-      .rel-section-title{font-size:13px;font-weight:600;color:#2D4A3E;border-bottom:1px solid #e0e8e4;padding-bottom:6px;margin-bottom:10px}
-      .rel-item{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid #f0f4f2}
-      .rel-item-dot{width:7px;height:7px;border-radius:50%;background:#2D4A3E;flex-shrink:0;margin-top:4px}
-      .rel-item-body{flex:1;font-size:12px}
-      .rel-item-sub{font-size:11px;color:#7A9488;margin-top:2px}
-      button{display:none}
-      @media print{body{padding:16px}}
-
-.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
-.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px}
-.elc:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
-.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade,#1E3529));border-color:var(--jade,#1E3529);cursor:default}
-.elc-highlight:hover{transform:none}
-.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
-.elc-icon.amb{background:rgba(245,158,11,.12)}.elc-icon.amb svg{stroke:var(--amb,#f59e0b)}
-.elc-icon.red{background:rgba(220,38,38,.12)}.elc-icon.red svg{stroke:var(--red,#dc2626)}
-.elc-icon.jade{background:rgba(30,53,41,.12)}.elc-icon.jade svg{stroke:var(--jade,#1E3529)}
-.elc-icon svg{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;stroke:currentColor;fill:none;stroke-width:1.8;display:block}
-.elc-right{flex:1;min-width:0}
-.elc-num{font-size:32px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px}
-.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px}
-.elc-sub{font-size:11px;color:var(--ink3)}
-.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important}
-.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px}
-.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px}
-.ti-item:hover{background:var(--sf2)}
-.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2}
-.ti-amb{color:var(--amb,#f59e0b)}.ti-red{color:var(--red,#dc2626)}.ti-grn{color:var(--grn,#16a34a)}
-.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap}
-.nav-badge{margin-left:auto;background:var(--red,#dc2626);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center}
-.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink)}
-@media(max-width:1100px){.elaw-cards{grid-template-columns:repeat(2,1fr)}}
-
-    </style>
-  </head><body>
-    ${conteudo.innerHTML}
-  </body></html>`);
-  w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); }, 500);
-}
 
 function imprimirRelatorio(){
   const conteudo = document.getElementById('rel-container');
@@ -2483,7 +2461,20 @@ function abrirModalUsuario(id){
 
 function renderChecklist(){
   const cliId=document.getElementById('ck-cli').value;
-  const mes=document.getElementById('ck-mes').value;
+  const mesSel=document.getElementById('ck-mes');
+  // Garantir que ck-mes esteja populado antes de usar
+  if(mesSel && mesSel.options.length===0){
+    const agora=new Date();
+    for(let i=0;i<12;i++){
+      const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);
+      const o=document.createElement('option');
+      o.value=d.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+      o.textContent=o.value;
+      if(i===0)o.selected=true;
+      mesSel.appendChild(o);
+    }
+  }
+  const mes=mesSel ? mesSel.value : new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
   const el=document.getElementById('ck-container');
   if(!cliId){ el.innerHTML='<div class="empty">Selecione um cliente para ver o checklist</div>'; return; }
   const itens=DB.checklistItens.filter(i=>i.CliID===cliId);
