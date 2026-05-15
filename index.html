@@ -611,9 +611,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .dash-grid{grid-template-columns:1fr;}
 }
 </style>
-<style id="littera-fix">
-.elc-icon{overflow:hidden!important;width:40px!important;height:40px!important}
-.elc-icon svg,.elc-icon svg *{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;display:block!important}
+<style id="littera-critical">
+.elc-icon{overflow:hidden!important;width:40px!important;height:40px!important;flex-shrink:0!important}
+.elc-icon svg{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;display:block!important;flex-shrink:0!important}
 </style>
 </head>
 <body>
@@ -782,29 +782,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
     <div class="pg on" id="pg-dashboard">
             <div class="elaw-cards">
         <div class="elc" onclick="goPg('calendario')">
-          <div class="elc-icon amb"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="elc-icon amb"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div class="elc-right"><div class="elc-num" id="elc-prazos">0</div><div class="elc-lbl">Prazos da Semana</div><div class="elc-sub">Entre hoje e 7 dias</div></div>
         </div>
         <div class="elc" onclick="goPg('publicacoes')">
-          <div class="elc-icon red"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+          <div class="elc-icon red"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
           <div class="elc-right">
             <div style="display:flex;gap:14px;align-items:baseline"><div><div style="font-size:9px;color:var(--ink3)">N&#227;o Tratadas</div><div class="elc-num" id="elc-pub-nt">0</div></div><div><div style="font-size:9px;color:var(--ink3)">Sem V&#237;nculo</div><div class="elc-num" id="elc-pub-sv">0</div></div></div>
             <div class="elc-lbl">&#218;lt. Publica&#231;&#245;es</div><div class="elc-sub">&#218;ltimos 15 dias</div>
           </div>
         </div>
         <div class="elc" onclick="goPg('processos')">
-          <div class="elc-icon jade"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <div class="elc-icon jade"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
           <div class="elc-right">
             <div style="display:flex;gap:14px;align-items:baseline"><div><div style="font-size:9px;color:var(--ink3)">Novos</div><div class="elc-num" id="elc-proc-n">0</div></div><div><div style="font-size:9px;color:var(--ink3)">Sem Mov.</div><div class="elc-num" id="elc-proc-sm">0</div></div></div>
             <div class="elc-lbl">Processos</div><div class="elc-sub">Total cadastrados</div>
           </div>
         </div>
         <div class="elc" onclick="goPg('calendario')">
-          <div class="elc-icon jade"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+          <div class="elc-icon jade"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
           <div class="elc-right"><div class="elc-num" id="elc-audiencias">0</div><div class="elc-lbl">Pr&#243;ximas Audi&#234;ncias</div><div class="elc-sub">Pr&#243;ximos 7 dias</div></div>
         </div>
         <div class="elc" onclick="goPg('tarefas')">
-          <div class="elc-icon red"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
+          <div class="elc-icon red"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></div>
           <div class="elc-right"><div class="elc-num" id="elc-andamentos">0</div><div class="elc-lbl">Tarefas Urgentes</div><div class="elc-sub">Pendentes</div></div>
         </div>
         <div class="elc elc-highlight">
@@ -820,25 +820,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
       </div>
 <div class="stats">
         <div class="stat-card c1">
-          <div class="stat-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>
           <div class="stat-num" id="s1">—</div>
           <div class="stat-lbl">Clientes ativos</div>
           <div class="stat-delta up" id="s1d"></div>
         </div>
         <div class="stat-card c2">
-          <div class="stat-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
           <div class="stat-num" id="s2">—</div>
           <div class="stat-lbl">Urgentes</div>
           <div class="stat-delta warn" id="s2d"></div>
         </div>
         <div class="stat-card c3">
-          <div class="stat-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
           <div class="stat-num" id="s3">—</div>
           <div class="stat-lbl">Pendentes</div>
           <div class="stat-delta" id="s3d"></div>
         </div>
         <div class="stat-card c4">
-          <div class="stat-icon"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="stat-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
           <div class="stat-num" id="s4">—</div>
           <div class="stat-lbl">Concluídas</div>
           <div class="stat-delta up" id="s4d"></div>
@@ -923,7 +923,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
               <span class="card-link" onclick="goPg('clientes')">ver todos →</span>
             </div>
             <div class="card-body" id="dash-clientes-list">
-              <div class="empty"><svg viewBox="0 0 24 24" width="22" height="22" style="display:block"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4"/></svg>Nenhum cliente</div>
+              <div class="empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4"/></svg>Nenhum cliente</div>
             </div>
           </div>
         </div>
@@ -1469,7 +1469,7 @@ function renderCRM(){
 function abrirModalLead(id){
   carregarLeads();
   const l = id ? DB.leads.find(x=>x.id===id) : null;
-  const etOpts = CRM_ETAPAS.map(et=>`<option value="${et.id}" ${l&&l.etapa===et.id?'selected':''}>${et.label}</option>`).join('');
+  const etOpts = CRM_ETAPAS.map(et=>'<option value="'+et.id+'" '+(l&&l.etapa===et.id?'selected':'')+'>'+et.label+'</option>').join('');
   abrirModal(l?'Editar Lead':'Novo Lead',`
     <div class="doc-field"><label>Nome / Empresa*</label><input id="ml-nome" type="text" value="${l?l.nome:''}" placeholder="Nome do potencial cliente"></div>
     <div class="form-row">
@@ -1542,7 +1542,7 @@ function converterLeadEmCliente(id){
       <div class="doc-field"><label>E-mail</label><input id="crc-email" type="email"></div>
     </div>
     <div class="form-row">
-      <div class="doc-field"><label>Responsável</label><select id="crc-resp">${DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('')}</select></div>
+      <div class="doc-field"><label>Responsável</label><select id="crc-resp">${DB.usuarios.map(u=>'<option>'+u.Nome+'</option>').join('')}</select></div>
       <div class="doc-field"><label>Status</label><select id="crc-status"><option value="Ativo">Ativo</option></select></div>
     </div>
     <div class="doc-field"><label>Endereço</label><input id="crc-end" type="text"></div>
@@ -1674,12 +1674,12 @@ function imprimirRelatorio(){
 }
 
 function imprimirMaturidade(){
-  const conteudo = document.getElementById('mat-container');
-  if(!conteudo || !conteudo.innerHTML.trim()){ showToast('Gere o relatório primeiro'); return; }
-  const w = window.open('', '_blank', 'width=900,height=700');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Maturidade — Littera</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1a2620;padding:32px}.mat-header{border-bottom:2px solid #2D4A3E;padding-bottom:16px;margin-bottom:24px}.mat-title{font-size:20px;font-weight:700;color:#2D4A3E}.mat-areas{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}.mat-area{background:#F2F5F3;border-radius:10px;padding:14px}.mat-area-title{font-size:13px;font-weight:600;color:#2D4A3E;margin-bottom:8px}.mat-bar-wrap{background:#e0e8e4;border-radius:99px;height:8px;margin-bottom:4px}.mat-bar{background:#2D4A3E;border-radius:99px;height:8px}.mat-bar-pct{font-size:11px;color:#7A9488}.mat-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #e8f0ec;font-size:12px}button{display:none}</style></head><body>'+conteudo.innerHTML+'</body></html>');
+  const el=document.getElementById('mat-container');
+  if(!el||!el.innerHTML.trim()){showToast('Gere o relatório primeiro');return;}
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Maturidade — Littera</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1a2620;padding:32px}.mat-areas{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}.mat-area{background:#F2F5F3;border-radius:10px;padding:14px}.mat-area-title{font-size:13px;font-weight:600;color:#2D4A3E;margin-bottom:8px}.mat-bar-wrap{background:#e0e8e4;border-radius:99px;height:8px;margin-bottom:4px}.mat-bar{background:#2D4A3E;border-radius:99px;height:8px}.mat-bar-pct{font-size:11px;color:#7A9488}.mat-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #e8f0ec;font-size:12px}button{display:none}</style></head><body>'+el.innerHTML+'</body></html>');
   w.document.close();
-  setTimeout(()=>{ w.focus(); w.print(); }, 500);
+  setTimeout(()=>{w.focus();w.print();},500);
 }
 
 window.onload = () => {
@@ -1906,8 +1906,7 @@ function atualizarSelects(){
     const cur=s.value;
     s.innerHTML='<option value="">'+( id==='fil-cli'?'Todos os clientes':'— Selecione o cliente —')+'</option>';
     clis.forEach(cl=>{ const o=document.createElement('option'); o.value=cl.ID; o.textContent=cl.Nome; s.appendChild(o); });
-    if(cur){ s.value=cur; }
-    if(id==='ck-cli' && cur) setTimeout(renderChecklist,50);
+    if(cur){ s.value=cur; if(id==='ck-cli' && s.value===cur) setTimeout(renderChecklist,100); }
   });
   const us = DB.usuarios;
   const sr = document.getElementById('fil-resp'); if(sr){ const cv=sr.value; sr.innerHTML='<option value="">Todos os responsáveis</option>'; us.forEach(u=>{const o=document.createElement('option');o.value=u.Nome;o.textContent=u.Nome;sr.appendChild(o);}); if(cv)sr.value=cv; }
@@ -2227,7 +2226,7 @@ function abrirModalTarefa(id, cliIdPre, cliNomePre, procIdPre){
     }
   }
   const cliOpts = DB.clientes.filter(c=>c.Status==='Ativo').map(c=>`<option value="${c.ID}" data-nome="${c.Nome}" ${(t&&t.CliID===c.ID)||(c.ID===cliPreSel)?'selected':''}>${c.Nome}</option>`).join('');
-  const usOpts = DB.usuarios.map(u=>`<option ${t&&t.Resp===u.Nome?'selected':''}>${u.Nome}</option>`).join('');
+  const usOpts = DB.usuarios.map(u=>'<option '+(t&&t.Resp===u.Nome?'selected':'')+'>'+u.Nome+'</option>').join('');
   abrirModal(t?'Editar Tarefa':'Nova Tarefa',`
     <div class="doc-field"><label>Título</label><input id="m-titulo" value="${_titulo!==undefined?_titulo:fmt(t?.Titulo)}" placeholder="Descrição da tarefa"></div>
     <div class="form-row">
@@ -2433,7 +2432,7 @@ async function sincRadar(){
 function abrirModalUsuario(id){
   const u = id ? DB.usuarios.find(x=>x.ID===id) : null;
   const titulo = u ? 'Editar Usuário' : 'Novo Usuário';
-  const niveisOpts = ['admin','advogado','estagiario'].map(n=>`<option value="${n}" ${u&&USUARIOS_VALIDOS[u.Nome]?.nivel===n?'selected':''}>${NIVEIS[n]?.label||n}</option>`).join('');
+  const niveisOpts = ['admin','advogado','estagiario'].map(n=>'<option value="'+n+'" '+(u&&USUARIOS_VALIDOS[u.Nome]?.nivel===n?'selected':'')+'>'+( NIVEIS[n]?.label||n)+'</option>').join('');
   abrirModal(titulo,`
     <div class="form-row">
       <div class="doc-field"><label>Nome*</label><input id="mu-nome" type="text" value="${u?u.Nome:''}" placeholder="Nome completo"></div>
@@ -3110,7 +3109,7 @@ function renderProcessos(){
         <td style="padding:9px 12px;font-size:11px;color:var(--ink3);font-family:monospace">${p.autuacao||'—'}</td>
         <td style="padding:9px 12px"><span class="tag ${tagSt(p.status)}">${p.status||'Ativo'}</span></td>
         <td style="padding:9px 12px;white-space:nowrap" onclick="event.stopPropagation()">
-          <button class="icon-btn" onclick="abrirModalTarefaProcesso('${p.id||p.ID||''}','${p.numero||p.Numero||''}','${p.cliente||p.Cliente||''}')" title="Nova tarefa"><svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="icon-btn" data-procid="${p.id||p.ID||''}" data-numero="${p.numero||p.Numero||''}" data-cliente="${p.cliente||p.Cliente||''}" onclick="abrirModalTarefaProcesso(this.dataset.procid,this.dataset.numero,this.dataset.cliente)" title="Nova tarefa"><svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <button class="icon-btn" onclick="abrirModalProcesso('${p.id||''}')" title="Editar"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           <button class="icon-btn" onclick="consultarDataJudById('${p.id||''}')" title="DataJud"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
           <button class="icon-btn danger" onclick="delProcesso('${p.id||''}')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
@@ -3121,12 +3120,9 @@ function renderProcessos(){
 
 function abrirModalTarefaProcesso(procId, numero, cliente){
   carregarProcessosLocais();
-  const proc = DB.processos.find(p=>(p.id||p.ID)===procId||(p.numero||p.Numero)===numero);
-  const cliNome = proc?(proc.cliente||proc.Cliente||''):(cliente||'');
-  const cliObj = DB.clientes.find(cl=>cl.Nome===cliNome);
-  const cliId = cliObj?cliObj.ID:'';
-  const titulo = numero?'[Proc. '+numero+'] ':'';
-  abrirModalTarefa(null, cliId, titulo);
+  const proc = DB.processos.find(p=>p.id===procId);
+  const cliId = proc ? DB.clientes.find(cl=>cl.Nome===proc.cliente)?.ID||'' : '';
+  abrirModalTarefa(null, cliId, '[Proc. '+numero+'] ');
 }
 
 
@@ -3458,7 +3454,7 @@ function gerarTarefaDePub(id){
       <div class="doc-field"><label>Cliente</label><select id="gtp-cli"><option value="">— Sem vínculo —</option>${cliOpts}</select></div>
     </div>
     <div class="form-row">
-      <div class="doc-field"><label>Responsável</label><select id="gtp-resp">${DB.usuarios.map(u=>`<option>${u.Nome}</option>`).join('')}</select></div>
+      <div class="doc-field"><label>Responsável</label><select id="gtp-resp">${DB.usuarios.map(u=>'<option>'+u.Nome+'</option>').join('')}</select></div>
     </div>
     <div style="background:var(--sf2);border-radius:8px;padding:10px 14px;margin-top:8px;font-size:12px">
       <div style="font-weight:500;margin-bottom:6px;color:var(--jade)">Tarefas que serão criadas:</div>
