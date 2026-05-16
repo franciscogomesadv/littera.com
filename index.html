@@ -579,50 +579,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 .toast{position:fixed;bottom:20px;right:20px;background:var(--jade-dk);color:#fff;padding:10px 18px;border-radius:9px;font-size:12px;font-weight:500;z-index:400;box-shadow:var(--shadow-md);border:1px solid var(--gold-border);}
 
 
-/* ══════════════════════════════════════════
-   DASHBOARD — eLAW CARDS (grid de métricas)
-══════════════════════════════════════════ */
+/* ══ DASHBOARD — eLAW CARDS ══ */
 .elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
-.elc{
-  background:var(--sf);border-radius:var(--radius);
-  padding:18px 20px;border:1px solid var(--br);
-  cursor:pointer;transition:all .18s;
-  display:flex;align-items:flex-start;gap:14px;
-}
+.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px;}
 .elc:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-.elc-highlight{
-  background:linear-gradient(135deg,#1a2e23,var(--jade-dk));
-  border-color:var(--jade-dk);cursor:default;
-}
+.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade));border-color:var(--jade);cursor:default;}
 .elc-highlight:hover{transform:none;}
-.elc-icon{
-  width:40px;height:40px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;overflow:hidden;
-}
-.elc-icon.amb{background:rgba(245,158,11,.12);}
-.elc-icon.amb svg{stroke:var(--amb);}
-.elc-icon.red{background:rgba(139,29,42,.10);}
-.elc-icon.red svg{stroke:var(--red);}
-.elc-icon.jade{background:rgba(45,74,62,.10);}
-.elc-icon.jade svg{stroke:var(--jade);}
+.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.elc-icon.amb{background:rgba(245,158,11,.12);}.elc-icon.amb svg{stroke:var(--amb);}
+.elc-icon.red{background:rgba(139,29,42,.10);}.elc-icon.red svg{stroke:var(--red);}
+.elc-icon.jade{background:rgba(45,74,62,.10);}.elc-icon.jade svg{stroke:var(--jade);}
 .elc-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;display:block;}
 .elc-right{flex:1;min-width:0;}
 .elc-num{font-size:30px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;}
 .elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
 .elc-sub{font-size:11px;color:var(--ink3);}
 .elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important;}
-
-/* ── Topbar indicators ── */
-.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px;}
-.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px;}
-.ti-item:hover{background:var(--sf2);}
-.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2;}
-.ti-amb{color:var(--amb);}.ti-red{color:var(--red);}.ti-grn{color:var(--grn);}
-.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap;}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center;}
-.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink);}
-
 /* ══════════════════════════════════════════
    PRINT & RESPONSIVE
 ══════════════════════════════════════════ */
@@ -1310,27 +1282,10 @@ let DB = {clientes:[],tarefas:[],calendario:[],radar:[],usuarios:[],checklistIte
 let usuarioAtual = null;
 
 const CHECKLIST_PADRAO = [
-  { area: 'TRABALHISTA', itens: [
-    'Registro em CTPS atualizado','Contratos de trabalho arquivados','PPP e LTCAT atualizados',
-    'eSocial em dia','FGTS recolhido regularmente','Laudos NR-07 e NR-09 vigentes',
-    'Acordo de compensação de horas registrado','Regulamento interno atualizado'
-  ]},
-  { area: 'TRIBUTÁRIO', itens: [
-    'DCTF entregue no prazo','ECF / ECD transmitidas','SPED Fiscal em dia',
-    'Certidões negativas válidas (Federal, Estadual, Municipal)',
-    'Simples Nacional ou Lucro Presumido regularizado','ISS/ICMS recolhidos','Parcelamentos em dia'
-  ]},
-  { area: 'SOCIETÁRIO', itens: [
-    'Contrato social atualizado na Junta','Ata de eleição de administrador vigente',
-    'Livros societários escriturados','Certidão de regularidade da Junta Comercial',
-    'Acordo de sócios arquivado (se houver)','Marca registrada no INPI (se aplicável)'
-  ]},
-  { area: 'LGPD', itens: [
-    'Política de privacidade publicada','DPO (encarregado) indicado',
-    'Mapeamento de dados pessoais realizado',
-    'Contratos com fornecedores incluem cláusula LGPD',
-    'Canal de atendimento ao titular de dados ativo','Registro de incidentes implantado'
-  ]}
+  { area: 'TRABALHISTA', itens: ['Registro em CTPS atualizado','Contratos de trabalho arquivados','PPP e LTCAT atualizados','eSocial em dia','FGTS recolhido regularmente','Laudos NR-07 e NR-09 vigentes','Acordo de compensação de horas registrado','Regulamento interno atualizado']},
+  { area: 'TRIBUTÁRIO',  itens: ['DCTF entregue no prazo','ECF / ECD transmitidas','SPED Fiscal em dia','Certidões negativas válidas (Federal, Estadual, Municipal)','Simples Nacional ou Lucro Presumido regularizado','ISS/ICMS recolhidos','Parcelamentos em dia']},
+  { area: 'SOCIETÁRIO',  itens: ['Contrato social atualizado na Junta','Ata de eleição de administrador vigente','Livros societários escriturados','Certidão de regularidade da Junta Comercial','Acordo de sócios arquivado (se houver)','Marca registrada no INPI (se aplicável)']},
+  { area: 'LGPD',        itens: ['Política de privacidade publicada','DPO (encarregado) indicado','Mapeamento de dados pessoais realizado','Contratos com fornecedores incluem cláusula LGPD','Canal de atendimento ao titular de dados ativo','Registro de incidentes implantado']}
 ];
 let filAtual = 'Pendente';
 let calViewAtual = 'semana';
@@ -1764,7 +1719,12 @@ async function loadData(){
       const camposCliente = ['DataEntrada'];
       DB.tarefas.forEach(t => camposTarefa.forEach(f => { if(t[f]) t[f]=normalizarData(t[f]); }));
       DB.calendario.forEach(e => camposCalend.forEach(f => { if(e[f]) e[f]=normalizarData(e[f]); }));
-      DB.clientes.forEach(cl => camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); }));
+      DB.clientes.forEach(cl => {
+        camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); });
+        // Normalizar Status: aceita 'Status', 'status', vazio — sempre garante c.Status
+        if(!cl.Status && cl.status) cl.Status = cl.status;
+        if(!cl.Status) cl.Status = 'Ativo'; // padrão: se vier sem status, considera Ativo
+      });
       // Leads CRM: mesclar API + localStorage
       const localLeads = JSON.parse(localStorage.getItem('littera_leads')||'[]');
       if(d.leads && d.leads.length){
@@ -2238,7 +2198,7 @@ function abrirModalTarefa(id, cliIdPre, cliNomePre, procIdPre){
     <div class="form-row">
       <div class="doc-field"><label>Cliente</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <select id="m-cli" style="flex:1"><option value="">Geral</option>${cliOpts}</select>
+          <select id="m-cli" style="flex:1;max-height:200px;overflow-y:auto"><option value="">Geral</option>${cliOpts}</select>
           <button type="button" class="btn sm" onclick="cadastroRapidoCliente('m-cli')" title="Cadastrar novo cliente" style="flex-shrink:0;white-space:nowrap">+ Novo</button>
         </div>
       </div>
@@ -2335,8 +2295,35 @@ async function salvarCliente(id){
     obs:document.getElementById('m-obs').value,
   };
   fecharModal(); showToast('Salvando…');
-  await fetch(API,{method:'POST',body:JSON.stringify(payload)});
-  await loadData();
+  // Salvar localmente antes do POST para não perder dados em caso de falha
+  if(!id){
+    const cli_local = {
+      ID: 'loc_'+Date.now(), Nome: payload.nome, Tipo: payload.tipo,
+      Setor: payload.setor, Email: payload.email, Tel: payload.tel,
+      CNPJ: payload.cnpj, Endereco: payload.endereco,
+      Rep: payload.rep, RepCPF: payload.repcpf, RepQual: payload.repqual,
+      Status: payload.status||'Ativo', Obs: payload.obs,
+      _pendente: true
+    };
+    DB.clientes.push(cli_local);
+    localStorage.setItem('littera_clientes_pendentes', JSON.stringify(
+      DB.clientes.filter(x=>x._pendente)
+    ));
+    renderClientes(); atualizarSelects();
+  }
+  try{
+    const r = await fetch(API,{method:'POST',body:JSON.stringify(payload)});
+    const d = await r.json();
+    if(d.ok){
+      await loadData();
+      showToast('Cliente salvo ✓');
+    } else {
+      showToast('⚠ Erro ao salvar: '+(d.msg||'verifique o Apps Script'));
+    }
+  }catch(e){
+    showToast('⚠ Sem conexão — dados salvos localmente');
+    await loadData();
+  }
 }
 
 async function delCliente(id){
@@ -2492,14 +2479,9 @@ function renderChecklist(){
   const mesSel=document.getElementById('ck-mes');
   if(mesSel && mesSel.options.length===0){
     const agora=new Date();
-    for(let i=0;i<12;i++){
-      const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);
-      const o=document.createElement('option');
-      o.value=d.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
-      o.textContent=o.value; if(i===0)o.selected=true; mesSel.appendChild(o);
-    }
+    for(let i=0;i<12;i++){const d=new Date(agora.getFullYear(),agora.getMonth()-i,1);const o=document.createElement('option');o.value=d.toLocaleDateString('pt-BR',{month:'short',year:'numeric'});o.textContent=o.value;if(i===0)o.selected=true;mesSel.appendChild(o);}
   }
-  const mes=mesSel ? mesSel.value : new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+  const mes=mesSel?mesSel.value:new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
   const el=document.getElementById('ck-container');
   if(!cliId){ el.innerHTML='<div class="empty">Selecione um cliente para ver o checklist</div>'; return; }
   const itens=DB.checklistItens.filter(i=>i.CliID===cliId);
