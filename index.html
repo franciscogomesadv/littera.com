@@ -610,8 +610,35 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
   .form-row,.form-row3{grid-template-columns:1fr;}
   .dash-grid{grid-template-columns:1fr;}
 }
-</style>
+/* ══ DASHBOARD — eLAW CARDS ══ */
+.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px;}
+.elc:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade));border-color:var(--jade);cursor:default;}
+.elc-highlight:hover{transform:none;}
+.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.elc-icon.amb{background:rgba(245,158,11,.12);}.elc-icon.amb svg{stroke:var(--amb);}
+.elc-icon.red{background:rgba(139,29,42,.10);}.elc-icon.red svg{stroke:var(--red);}
+.elc-icon.jade{background:rgba(45,74,62,.10);}.elc-icon.jade svg{stroke:var(--jade);}
+.elc-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;display:block;}
+.elc-right{flex:1;min-width:0;}
+.elc-num{font-size:30px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;}
+.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
+.elc-sub{font-size:11px;color:var(--ink3);}
+.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important;}
+/* ══ TOPBAR INDICATORS ══ */
+.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px;}
+.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px;}
+.ti-item:hover{background:var(--sf2);}
+.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2;}
+.ti-amb{color:var(--amb);}.ti-red{color:var(--red);}.ti-grn{color:var(--grn);}
+.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center;}
+.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink);}
+@media(max-width:1100px){.elaw-cards{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:900px){.elaw-cards{grid-template-columns:1fr;}}
 
+</style>
 </head>
 <body>
 
@@ -1219,37 +1246,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font
 
 <div class="toast" id="toast" style="display:none"></div>
 
-
-/* ══ DASHBOARD — eLAW CARDS ══ */
-.elaw-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
-.elc{background:var(--sf);border-radius:var(--radius);padding:18px 20px;border:1px solid var(--br);cursor:pointer;transition:all .18s;display:flex;align-items:flex-start;gap:14px;}
-.elc:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
-.elc-highlight{background:linear-gradient(135deg,#1a2e23,var(--jade));border-color:var(--jade);cursor:default;}
-.elc-highlight:hover{transform:none;}
-.elc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
-.elc-icon.amb{background:rgba(245,158,11,.12);}.elc-icon.amb svg{stroke:var(--amb);}
-.elc-icon.red{background:rgba(139,29,42,.10);}.elc-icon.red svg{stroke:var(--red);}
-.elc-icon.jade{background:rgba(45,74,62,.10);}.elc-icon.jade svg{stroke:var(--jade);}
-.elc-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;display:block;}
-.elc-right{flex:1;min-width:0;}
-.elc-num{font-size:30px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1;margin-bottom:3px;}
-.elc-lbl{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:2px;}
-.elc-sub{font-size:11px;color:var(--ink3);}
-.elc-highlight .elc-lbl,.elc-highlight .elc-sub,.elc-highlight .elc-num{color:rgba(255,255,255,.85)!important;}
-/* ══ TOPBAR ══ */
-.topbar-indicators{display:flex;gap:1px;background:var(--br);border-radius:8px;overflow:hidden;margin-right:8px;}
-.ti-item{padding:4px 14px;background:var(--sf);cursor:pointer;text-align:center;transition:background .15s;min-width:64px;}
-.ti-item:hover{background:var(--sf2);}
-.ti-num{font-size:16px;font-weight:700;color:var(--ink);font-family:'DM Mono',monospace;line-height:1.2;}
-.ti-amb{color:var(--amb);}.ti-red{color:var(--red);}.ti-grn{color:var(--grn);}
-.ti-lbl{font-size:9px;color:var(--ink3);white-space:nowrap;}
-.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;min-width:16px;text-align:center;}
-.filter-input{border:1px solid var(--br);border-radius:6px;padding:5px 10px;font-size:12px;background:var(--sf);color:var(--ink);}
-@media(max-width:1100px){.elaw-cards{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:900px){.elaw-cards{grid-template-columns:1fr;}}
-
-
-</style>
 <script>
 // ══════════════════════════════════════════
 //  CONFIGURAÇÃO
@@ -1735,7 +1731,6 @@ async function loadData(){
       DB.calendario.forEach(e => camposCalend.forEach(f => { if(e[f]) e[f]=normalizarData(e[f]); }));
       DB.clientes.forEach(cl => {
         camposCliente.forEach(f => { if(cl[f]) cl[f]=normalizarData(cl[f]); });
-        // Normalizar campo Status — Sheets pode retornar 'status' (minúsculo) ou vazio
         if(!cl.Status && cl.status) cl.Status = cl.status;
         if(!cl.Status) cl.Status = 'Ativo';
       });
@@ -2309,12 +2304,7 @@ async function salvarCliente(id){
     obs:document.getElementById('m-obs').value,
   };
   fecharModal(); showToast('Salvando…');
-  try{
-    const r=await fetch(API,{method:'POST',body:JSON.stringify(payload)});
-    const d=await r.json();
-    if(d.ok){ await loadData(); showToast('Cliente salvo ✓'); }
-    else showToast('⚠ Erro: '+(d.msg||'verifique o Apps Script'));
-  }catch(e){ showToast('⚠ Sem conexão — tente novamente'); }
+  await fetch(API,{method:'POST',body:JSON.stringify(payload)});
   await loadData();
 }
 
